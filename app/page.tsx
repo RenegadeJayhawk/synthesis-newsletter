@@ -4,11 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowRight, TrendingUp, Users, BookOpen } from 'lucide-react'
 import ArticleCard from '@/components/article/ArticleCard'
 import PageWrapper from '@/components/layout/PageWrapper'
+import { GenerativeArtCanvas } from '@/components/generative/GenerativeArtCanvas'
 import { articles } from '@/lib/data'
 
 export default function HomePage() {
-  const featuredArticle = articles.find(article => article.isFeatured)
-  const latestArticles = articles.filter(article => !article.isFeatured).slice(0, 3)
+  const featuredArticle = articles.find(article => article.featured)
+  const latestArticles = articles.filter(article => !article.featured).slice(0, 3)
 
   return (
     <PageWrapper>
@@ -16,6 +17,12 @@ export default function HomePage() {
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
+        
+        {/* Generative Art Background */}
+        <div className="absolute inset-0 opacity-30">
+          <GenerativeArtCanvas />
+        </div>
+        
         <div 
           className="absolute inset-0 opacity-10"
           style={{
@@ -117,7 +124,7 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {latestArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
+              <ArticleCard key={article.slug} article={article} />
             ))}
           </div>
         </div>
