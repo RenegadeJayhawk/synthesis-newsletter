@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    # allow CI to run on any branch so feature branches trigger checks
+    branches: [ '**' ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch: {}
 
 jobs:
   build:
