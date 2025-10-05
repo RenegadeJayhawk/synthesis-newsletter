@@ -28,7 +28,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          {/* Provide a server-side skip target that wraps the app content so static export includes the target on every page */}
+          <div id="main-content">
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>
