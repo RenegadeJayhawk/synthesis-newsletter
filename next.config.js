@@ -7,6 +7,7 @@ const nextConfig = {
   
   // Optimize images
   images: {
+    unoptimized: true,
     domains: ['images.unsplash.com', 'via.placeholder.com'],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -73,8 +74,11 @@ const nextConfig = {
     return config;
   },
   
-  // Output configuration for static export if needed
-  output: 'standalone',
+  // Output configuration for static export.
+  // When BUILD_EXPORT is set (for CI or production export runs) we enable
+  // static export. During local development this can cause extra warnings
+  // and stricter requirements for dynamic routes, so we keep it opt-in.
+  output: process.env.BUILD_EXPORT ? 'export' : undefined,
   
   // Trailing slash configuration
   trailingSlash: false,

@@ -1,5 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Quick start (recommended)
+
+1. Install Node 18+ (or 20)
+2. From the project root run:
+
+```powershell
+# install deps and prepare the project
+./scripts/dev-setup.ps1
+
+# start dev server
+npm run dev
+```
+
 ## Getting Started
 
 First, run the development server:

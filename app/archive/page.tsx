@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { articles } from '@/lib/data';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { Input } from '@/components/ui/input';
 
 // Metadata will be handled by the layout
 
@@ -35,11 +36,11 @@ export default function ArchivePage() {
               
               {/* Search Bar */}
               <div className="max-w-2xl mx-auto relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
+                <Search aria-hidden="true" className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  aria-label="Search articles"
                   placeholder="Search articles..."
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="w-64 pl-10"
                 />
               </div>
             </motion.div>
@@ -206,6 +207,7 @@ export default function ArchivePage() {
               <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
                 <input
                   type="email"
+                  aria-label="Newsletter email"
                   placeholder="Enter your email"
                   className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30"
                 />

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { categories } from '@/lib/categories'
 
 export default function Footer() {
   return (
@@ -35,10 +36,11 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Categories</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/category/ai" className="text-slate-300 hover:text-white transition-colors">Artificial Intelligence</Link></li>
-              <li><Link href="/category/ml" className="text-slate-300 hover:text-white transition-colors">Machine Learning</Link></li>
-              <li><Link href="/category/robotics" className="text-slate-300 hover:text-white transition-colors">Robotics</Link></li>
-              <li><Link href="/category/ethics" className="text-slate-300 hover:text-white transition-colors">AI Ethics</Link></li>
+              {categories.map((c) => (
+                <li key={c.slug}>
+                  <Link href={`/category/${c.slug}`} className="text-slate-300 hover:text-white transition-colors">{c.title}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -50,6 +52,8 @@ export default function Footer() {
             </p>
             <div className="space-y-2">
               <Input 
+                aria-label="Newsletter email"
+                name="newsletter-email"
                 placeholder="Enter your email" 
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
               />

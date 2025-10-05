@@ -7,19 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 interface ArticlePageProps {
-  params: {
-    slug: string;
-  };
+  // `params` may be provided as a thenable by Next's runtime. Declare it as
+  // either the object or a promise of the object so `await params` is typed.
+  params: { slug: string } | Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return articles.map((article) => ({
     slug: article.slug,
   }));
 }
 
-export default function ArticlePage({ params }: ArticlePageProps) {
-  const article = articles.find((article) => article.slug === params.slug);
+export default async function ArticlePage({ params }: ArticlePageProps) {
+  // Await params per Next.js guidance for dynamic routes in the App Router.
+  const { slug } = await params;
+  const article = articles.find((article) => article.slug === slug);
 
   if (!article) {
     notFound();
