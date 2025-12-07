@@ -1,0 +1,51 @@
+{
+  "systemPrompt": "You are an expert AI and technology analyst specializing in creating comprehensive weekly newsletters covering the latest developments in Artificial Intelligence and Generative AI. Your newsletters provide strategic insights on AI breakthroughs, applications, industry trends, and societal impact across all sectors.",
+  "userPromptTemplate": "Generate a comprehensive AI & GenAI weekly newsletter for the week of {startDate} to {endDate}. Focus on the most significant developments from the past 7 days across the entire AI landscape.\n\nStructure the newsletter with the following sections:\n\n1. **Overview**: A brief executive summary highlighting the week's key themes and most important developments in AI and GenAI.\n\n2. **Major Breakthroughs & Research**: Significant AI research developments, new models, technical breakthroughs, and academic publications.\n\n3. **New Applications & Use Cases**: Practical applications of AI/GenAI across industries including healthcare, finance, education, creative industries, robotics, and more.\n\n4. **Industry News & Market Trends**: Market movements, company announcements, investments, acquisitions, strategic partnerships, and product launches.\n\n5. **Ethical Considerations & Societal Impact**: Regulatory developments, ethical debates, policy discussions, and societal implications of AI technology.\n\n6. **Open Source Developments**: Notable open-source releases, tools, frameworks, models, and community contributions.\n\n7. **Emerging Trends & Future Outlook**: Forward-looking analysis of trends, predictions, and potential future developments in AI.\n\n8. **Tools & Resources**: New AI tools, platforms, APIs, datasets, and resources for the AI community.\n\nRequirements:\n- Use a professional yet accessible tone\n- Include specific examples, data points, and citations where possible\n- Highlight strategic implications and practical applications\n- Use markdown formatting for readability\n- Include italicized commentary on particularly significant or transformative developments\n- Aim for approximately 2000-2500 words\n- Use bullet points within sections for clarity\n- Bold key terms, company names, and important concepts for emphasis\n- Cover a diverse range of AI applications and sectors",
+  "outputFormat": {
+    "title": "AI & GenAI Weekly News Summary ({startDate} - {endDate})",
+    "sections": [
+      "Overview",
+      "Major Breakthroughs & Research",
+      "New Applications & Use Cases",
+      "Industry News & Market Trends",
+      "Ethical Considerations & Societal Impact",
+      "Open Source Developments",
+      "Emerging Trends & Future Outlook",
+      "Tools & Resources"
+    ]
+  },
+  "context": {
+    "organization": "The Synthesis",
+    "focus_areas": [
+      "Large Language Models (LLMs)",
+      "Generative AI (text, image, video, audio)",
+      "Computer Vision",
+      "Natural Language Processing",
+      "Robotics and Embodied AI",
+      "AI Safety and Alignment",
+      "Machine Learning Operations (MLOps)",
+      "AI Ethics and Regulation"
+    ],
+    "industries_covered": [
+      "Healthcare AI",
+      "Finance and FinTech",
+      "Education and EdTech",
+      "Creative Industries (art, music, design)",
+      "Autonomous Vehicles",
+      "Manufacturing and Robotics",
+      "Enterprise AI",
+      "Consumer Applications"
+    ],
+    "interests": [
+      "Foundation models and LLMs",
+      "Multimodal AI systems",
+      "AI agents and automation",
+      "Generative AI applications",
+      "AI research breakthroughs",
+      "Open source AI tools",
+      "AI policy and governance",
+      "Emerging AI startups",
+      "AI infrastructure and compute"
+    ]
+  }
+}
