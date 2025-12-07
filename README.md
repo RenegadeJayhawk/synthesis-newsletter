@@ -13,7 +13,7 @@ A high-end AI newsletter website built with Next.js 15, featuring AI-powered new
 - **SEO Optimized**: Comprehensive metadata and Open Graph tags
 
 ### Backend (NEW!)
-- **AI Newsletter Generation**: Powered by OpenAI GPT-4.1-mini
+- **AI Newsletter Generation**: Powered by Google Gemini 2.0 Flash
 - **Serverless API Routes**: Vercel-compatible Next.js API routes
 - **Structured Prompts**: Customizable newsletter generation templates
 - **7-Day Lookback**: Automatic date range calculation
@@ -25,7 +25,7 @@ A high-end AI newsletter website built with Next.js 15, featuring AI-powered new
 
 - Node.js 18+ 
 - npm or pnpm
-- OpenAI API key
+- Google Gemini API key
 
 ### Installation
 
@@ -39,7 +39,7 @@ npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local and add your OPENAI_API_KEY
+# Edit .env.local and add your GEMINI_API_KEY
 
 # Run development server
 npm run dev
@@ -66,7 +66,7 @@ Visit [http://localhost:3000/newsletter](http://localhost:3000/newsletter) to ge
 Create a `.env.local` file:
 
 ```env
-OPENAI_API_KEY=sk-your-openai-api-key-here
+GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
 ## 🤖 Newsletter Generation
@@ -95,9 +95,7 @@ npm run lint         # Run ESLint
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **UI**: Shadcn/ui
-- **Animations**: Framer Motion, GSAP, React Three Fiber
-- **AI**: OpenAI GPT-4.1-mini
-- **Deployment**: Vercel
+- **Animations**: Framer Motion, GSAP, React Three Fi- **AI Model**: Google Gemini 2.0 Flash **Deployment**: Vercel
 
 ## 📄 License
 

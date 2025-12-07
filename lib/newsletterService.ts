@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import newsletterPromptConfig from './newsletterPrompt.json';
 
 export interface Newsletter {
@@ -34,17 +34,16 @@ export function calculateDateRange(): { startDate: string; endDate: string } {
 }
 
 /**
- * Generate newsletter content using OpenAI API
+ * Generate newsletter content using Google Gemini API
  */
 export async function generateNewsletterContent(): Promise<string> {
   // Check for API key
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is not set');
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY environment variable is not set');
   }
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
   const { startDate, endDate } = calculateDateRange();
 
@@ -53,27 +52,23 @@ export async function generateNewsletterContent(): Promise<string> {
     .replace(/{startDate}/g, startDate)
     .replace(/{endDate}/g, endDate);
 
+  // Combine system and user prompts for Gemini
+  const fullPrompt = `${newsletterPromptConfig.systemPrompt}\n\n${userPrompt}`;
+
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
-      messages: [
-        {
-          role: 'system',
-          content: newsletterPromptConfig.systemPrompt
-        },
-        {
-          role: 'user',
-          content: userPrompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8000,
+      },
     });
 
-    const content = completion.choices[0]?.message?.content;
+    const response = result.response;
+    const content = response.text();
     
     if (!content) {
-      throw new Error('No content generated from OpenAI');
+      throw new Error('No content generated from Gemini');
     }
 
     return content;
@@ -97,7 +92,7 @@ export async function createNewsletter(): Promise<Newsletter> {
     weekEnd: endDate,
     content,
     generatedAt: new Date().toISOString(),
-    model: 'gpt-4.1-mini'
+    model: 'gemini-2.0-flash-exp'
   };
 
   return newsletter;
