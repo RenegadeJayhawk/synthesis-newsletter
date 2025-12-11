@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Calendar, Loader2 } from 'lucide-react';
 import PageWrapper from '@/components/layout/PageWrapper';
-import ReactMarkdown from 'react-markdown';
+import { NewsletterArticleList, NewsletterOverview } from '@/components/newsletter';
+import { ParsedNewsletter } from '@/types/newsletter';
 
 interface Newsletter {
   id: string;
@@ -17,7 +18,7 @@ interface Newsletter {
 }
 
 export default function NewsletterPage() {
-  const [newsletter, setNewsletter] = useState<Newsletter | null>(null);
+  const [newsletter, setNewsletter] = useState<ParsedNewsletter | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +37,9 @@ export default function NewsletterPage() {
       const data = await response.json();
       
       if (data.success && data.newsletter) {
-        setNewsletter(data.newsletter);
+        // Parse the newsletter content
+        const parsed = await parseNewsletterContent(data.newsletter);
+        setNewsletter(parsed);
       } else {
         setError('No newsletter available. Click "Refresh Newsletter" to generate one.');
       }
@@ -60,7 +63,9 @@ export default function NewsletterPage() {
       const data = await response.json();
       
       if (data.success && data.newsletter) {
-        setNewsletter(data.newsletter);
+        // Parse the newsletter content
+        const parsed = await parseNewsletterContent(data.newsletter);
+        setNewsletter(parsed);
       } else {
         setError(data.error || 'Failed to generate newsletter');
       }
@@ -72,11 +77,42 @@ export default function NewsletterPage() {
     }
   };
 
+  /**
+   * Parse newsletter content and add images
+   */
+  const parseNewsletterContent = async (rawNewsletter: Newsletter): Promise<ParsedNewsletter> => {
+    try {
+      // Call API to parse newsletter
+      const response = await fetch('/api/newsletter/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newsletter: rawNewsletter }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to parse newsletter');
+      }
+
+      const data = await response.json();
+      return data.parsed;
+    } catch (error) {
+      console.error('Error parsing newsletter:', error);
+      // Fallback: return basic structure
+      return {
+        ...rawNewsletter,
+        overview: 'Newsletter overview',
+        articles: [],
+      };
+    }
+  };
+
   return (
     <PageWrapper>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-4xl font-bold mb-2">AI & GenAI Weekly Newsletter</h1>
             {newsletter && (
@@ -90,7 +126,7 @@ export default function NewsletterPage() {
           <Button
             onClick={handleGenerateNewsletter}
             disabled={generating}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shrink-0"
           >
             {generating ? (
               <>
@@ -122,12 +158,33 @@ export default function NewsletterPage() {
 
         {/* Newsletter Content */}
         {newsletter && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8">
-            <article className="prose prose-lg dark:prose-invert max-w-none">
-              <ReactMarkdown>{newsletter.content}</ReactMarkdown>
-            </article>
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 sm:p-8">
+            {/* Overview Section */}
+            {newsletter.overview && (
+              <NewsletterOverview
+                content={newsletter.overview}
+                weekStart={newsletter.weekStart}
+                weekEnd={newsletter.weekEnd}
+              />
+            )}
+
+            {/* Article List */}
+            {newsletter.articles && newsletter.articles.length > 0 ? (
+              <NewsletterArticleList
+                articles={newsletter.articles}
+                title="This Week's Top Stories"
+                description="Curated insights from the latest developments in AI and GenAI"
+              />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No articles found in this newsletter.
+                </p>
+              </div>
+            )}
             
-            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+            {/* Footer */}
+            <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-muted-foreground">
                 Generated on {new Date(newsletter.generatedAt).toLocaleString()} using {newsletter.model}
               </p>
