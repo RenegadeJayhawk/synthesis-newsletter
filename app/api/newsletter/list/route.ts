@@ -1,21 +1,31 @@
 import { NextResponse } from 'next/server';
-import { getAllNewsletters } from '@/lib/database';
+import { newsletterDb } from '@/lib/db/newsletterDbService';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/newsletter/list
- * Get all newsletters, sorted by date descending
+ * Get a list of all newsletters (paginated)
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const newsletters = await getAllNewsletters();
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
+    
+    const newsletters = await newsletterDb.listNewsletters(limit, offset);
+    const totalCount = await newsletterDb.getNewsletterCount();
     
     return NextResponse.json({
       success: true,
       newsletters,
-      count: newsletters.length
+      pagination: {
+        limit,
+        offset,
+        total: totalCount,
+        hasMore: offset + limit < totalCount
+      }
     });
     
   } catch (error) {

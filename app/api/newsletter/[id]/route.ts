@@ -5,17 +5,21 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/newsletter/latest
- * Get the most recently generated newsletter with articles
+ * GET /api/newsletter/[id]
+ * Get a specific newsletter by ID with all articles
  */
-export async function GET() {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const newsletter = await newsletterDb.getLatestNewsletter();
+    const { id } = await params;
+    const newsletter = await newsletterDb.getNewsletterById(id);
     
     if (!newsletter) {
       return NextResponse.json({
         success: false,
-        error: 'No newsletters found'
+        error: 'Newsletter not found'
       }, { status: 404 });
     }
     
@@ -25,7 +29,7 @@ export async function GET() {
     });
     
   } catch (error) {
-    console.error('Error fetching latest newsletter:', error);
+    console.error('Error fetching newsletter:', error);
     
     return NextResponse.json({
       success: false,
