@@ -8,7 +8,9 @@ This document describes the automated weekly newsletter generation system using 
 
 ## Overview
 
-The AI newsletter now supports **automated weekly generation** using Vercel's built-in cron job functionality. Newsletters are automatically generated, parsed, saved to the database, and logged without any manual intervention.
+The AI newsletter now supports **automated weekly generation**. Newsletters are automatically generated, parsed, saved to the database, and logged without any manual intervention.
+
+**⚠️ Important:** Vercel Cron requires a **Pro plan** ($20/month). If you're on the free Hobby plan, use **GitHub Actions** instead (completely free). See `GITHUB_ACTIONS_SETUP.md` for instructions.
 
 ---
 
