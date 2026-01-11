@@ -1,0 +1,47 @@
+name: Generate Weekly Newsletter
+
+on:
+  # Run every Monday at 9:00 AM UTC
+  schedule:
+    - cron: '0 9 * * 1'
+  
+  # Allow manual triggering from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  generate-newsletter:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Generate Newsletter
+        run: |
+          echo "🚀 Starting automated newsletter generation..."
+          
+          # Call the cron endpoint with authorization
+          response=$(curl -s -w "\n%{http_code}" -X GET \
+            "${{ secrets.VERCEL_DEPLOYMENT_URL }}/api/cron/generate-newsletter" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" )
+          
+          # Extract HTTP status code (last line)
+          http_code=$(echo "$response" | tail -n1 )
+          
+          # Extract response body (everything except last line)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "📊 HTTP Status: $http_code"
+          echo "📄 Response:"
+          echo "$body" | jq '.' || echo "$body"
+          
+          # Check if request was successful
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Newsletter generated successfully!"
+            exit 0
+          else
+            echo "❌ Newsletter generation failed with status $http_code"
+            exit 1
+          fi
+
+      - name: Notify on Failure
+        if: failure( )
+        run: |
+          echo "⚠️ Newsletter generation failed. Check the logs above for details."
