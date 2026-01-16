@@ -15,7 +15,7 @@ for (const p of pages) {
   console.log('Running pa11y on', url)
   try {
     // run pa11y with minimal output; requires no install because we'll use npx in CI
-    execSync(`npx pa11y ${url} --timeout 30000`, { stdio: 'inherit' })
+    execSync(`npx pa11y ${url} --timeout 30000 --chromeLaunchArgs="--no-sandbox,--disable-setuid-sandbox"`, { stdio: 'inherit' })
   } catch (e) {
     hadError = true
   }
