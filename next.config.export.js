@@ -1,1 +1,7 @@
-export default { output: "export", trailingSlash: true, images: { unoptimized: true } }
+const nextExportConfig = {
+  output: "export",
+  trailingSlash: true,
+  images: { unoptimized: true },
+};
+
+export default nextExportConfig;

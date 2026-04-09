@@ -51,9 +51,9 @@ export interface Article {
 }
 
 export interface AnimationVariants {
-  initial: any
-  animate: any
-  exit?: any
-  transition?: any
+  initial: Record<string, unknown>
+  animate: Record<string, unknown>
+  exit?: Record<string, unknown>
+  transition?: Record<string, unknown>
 }
 

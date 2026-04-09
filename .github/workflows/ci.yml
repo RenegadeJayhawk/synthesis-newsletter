@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    # allow CI to run on any branch so feature branches trigger checks
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Static export build
+        run: npm run build:export
+      - name: Export manifest and link checks
+        run: |
+          node ./scripts/generate-export-manifest.js
+          npm run check:export
+      - name: Category export test
+        run: node ./scripts/test/categories.test.js
+      - name: Manifest sync test
+        run: npm run manifest:test
+      - name: Upload manifest artifact
+        id: upload_manifest
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD || echo 'unknown')
+          TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
+          ART_NAME="out-manifest-${GIT_SHA}-${TIMESTAMP}.json"
+          echo "artifact_name=$ART_NAME" >> $GITHUB_OUTPUT
+          mv out/out-manifest.json out/${ART_NAME}
+        shell: bash
+      - name: Upload artifact file
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.upload_manifest.outputs.artifact_name }}
+          path: out/${{ steps.upload_manifest.outputs.artifact_name }}
+      - name: HTTP smoke tests for exported site
+        run: |
+          # start local Node static server and run probe
+          node ./scripts/serve-out.js 8080 &
+          # wait for server to be ready
+          for i in 1 2 3 4 5; do
+            sleep 1
+            curl -f http://127.0.0.1:8080/ && break || continue
+          done
+          node ./scripts/probe-http.js
+        env:
+          BASE_URL: 'http://127.0.0.1:8080'
+      - name: Accessibility checks (pa11y)
+        run: |
+          # run a small sample of pages through pa11y
+          npx pa11y --version || true
+          node ./scripts/a11y-check.js
+        env:
+          BASE_URL: 'http://127.0.0.1:8080'

@@ -1,106 +1,66 @@
-# The Synthesis - AI & GenAI Weekly Newsletter
+# The Synthesis — newsletter site
 
-A high-end AI newsletter website built with Next.js 15, featuring AI-powered newsletter generation tailored for Hyundai Capital America, Hyundai Motor Group, and Boston Dynamics.
+Static-exported [Next.js 15](https://nextjs.org/) site for **The Synthesis**, an AI newsletter experience (App Router, TypeScript, Tailwind CSS). Full product notes, structure, and troubleshooting live in **[DOCUMENTATION.md](./DOCUMENTATION.md)**.
 
-## 🚀 Features
+## Requirements
 
-### Frontend
-- **Modern Tech Stack**: Next.js 15, TypeScript, Tailwind CSS
-- **Advanced Animations**: Framer Motion, GSAP, React Three Fiber
-- **Generative Art**: Dynamic 3D background animations
-- **Responsive Design**: Fully optimized for all screen sizes
-- **Dark Mode**: Theme switching with next-themes
-- **SEO Optimized**: Comprehensive metadata and Open Graph tags
+- **Node.js** 18.18+ or 20.x (LTS recommended; CI uses **20.x**)
 
-### Backend (NEW!)
-- **AI Newsletter Generation**: Powered by Google Gemini 2.0 Flash
-- **Serverless API Routes**: Vercel-compatible Next.js API routes
-- **Structured Prompts**: Customizable newsletter generation templates
-- **7-Day Lookback**: Automatic date range calculation
-- **Database Ready**: Modular design for easy database integration
-
-## 🏃 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or pnpm
-- Google Gemini API key
-
-### Installation
+## Quick start
 
 ```bash
-# Clone the repository
-git clone https://github.com/RenegadeJayhawk/synthesis-newsletter.git
-cd synthesis-newsletter
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local and add your GEMINI_API_KEY
-
-# Run development server
+npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the application.
+Open [http://localhost:3000](http://localhost:3000).
 
-Visit [http://localhost:3000/newsletter](http://localhost:3000/newsletter) to generate AI newsletters.
+On Windows you can use `./scripts/dev-setup.ps1` after cloning to install dependencies and prepare the tree.
 
-## 🚀 Deployment to Vercel
+## Scripts
 
-### Quick Deploy
+| Command | Purpose |
+|--------|---------|
+| `npm run dev` | Dev server (Turbopack) |
+| `npm run build` | Production build (static export only if `BUILD_EXPORT=1`) |
+| `npm run build:export` | Static export build (`out/`) |
+| `npm run lint` | ESLint |
+| `npm run check:export` | Validate links in exported HTML |
+| `npm run start` | Serve production build (non-export) |
 
-1. Push your code to GitHub
-2. Go to [vercel.com/new](https://vercel.com/new)
-3. Import your repository
-4. Add environment variable: `OPENAI_API_KEY`
-5. Click "Deploy"
+`npm install` / `npm ci` runs **postinstall**, which executes `scripts/write-icons.js` and writes raster icons under `public/` (`favicon.ico`, PNG favicons, `apple-touch-icon.png`, `og-image.png`). Those files are required for metadata and social previews; do not delete the script without replacing the assets.
 
-**For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)**
+## Static export and CI
 
-## 🔐 Environment Variables
+Local dev normally runs **without** `output: 'export'`. For CI and static hosting, set `BUILD_EXPORT=1` so `next.config.js` enables static export.
 
-Create a `.env.local` file:
+**Windows (PowerShell):**
 
-```env
-GEMINI_API_KEY=your-gemini-api-key-here
+```powershell
+$env:BUILD_EXPORT = '1'
+npm run build
 ```
 
-## 🤖 Newsletter Generation
-
-The AI generates comprehensive weekly newsletters covering:
-- Major AI breakthroughs & research
-- New applications & use cases
-- Industry news & market trends
-- Ethical considerations
-- Open source developments
-- Emerging trends
-- Automotive finance, HCA, HMG, and Boston Dynamics focus
-
-## 📝 Available Scripts
+**macOS / Linux:**
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
+BUILD_EXPORT=1 npm run build
 ```
 
-## 🛠️ Tech Stack
+The [GitHub Actions workflow](.github/workflows/ci.yml) typechecks, runs a static export, checks links, runs manifest tests, HTTP probes, and accessibility checks. Custom headers from `next.config.js` are not applied by static hosts; configure them at your CDN if needed.
 
-- **Framework**: Next.js 15
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI**: Shadcn/ui
-- **Animations**: Framer Motion, GSAP, React Three Fi- **AI Model**: Google Gemini 2.0 Flash **Deployment**: Vercel
+## Repo map
 
-## 📄 License
+- `app/` — routes and layouts  
+- `components/` — UI and layout  
+- `lib/` — data, metadata, utilities  
+- `public/` — static assets (SVG icons committed; PNG/ICO from postinstall)  
+- `scripts/` — export checks, local server, icon generation  
 
-MIT License
+## Contributing
 
----
+See **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
-**Built for Hyundai Capital America** | [Deployment Guide](./DEPLOYMENT_GUIDE.md)
+## License
+
+MIT — described in **[DOCUMENTATION.md](./DOCUMENTATION.md)**.
