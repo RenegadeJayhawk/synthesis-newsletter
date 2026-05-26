@@ -7,7 +7,7 @@ export interface CronLogEntry {
   timestamp: string;
   level: 'info' | 'warn' | 'error' | 'success';
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class CronLogger {
@@ -18,7 +18,7 @@ class CronLogger {
     return new Date().toISOString();
   }
 
-  private addLog(level: CronLogEntry['level'], message: string, metadata?: Record<string, any>) {
+  private addLog(level: CronLogEntry['level'], message: string, metadata?: Record<string, unknown>) {
     const entry: CronLogEntry = {
       timestamp: this.formatTimestamp(),
       level,
@@ -41,19 +41,19 @@ class CronLogger {
     return entry;
   }
 
-  info(message: string, metadata?: Record<string, any>) {
+  info(message: string, metadata?: Record<string, unknown>) {
     return this.addLog('info', message, metadata);
   }
 
-  warn(message: string, metadata?: Record<string, any>) {
+  warn(message: string, metadata?: Record<string, unknown>) {
     return this.addLog('warn', message, metadata);
   }
 
-  error(message: string, metadata?: Record<string, any>) {
+  error(message: string, metadata?: Record<string, unknown>) {
     return this.addLog('error', message, metadata);
   }
 
-  success(message: string, metadata?: Record<string, any>) {
+  success(message: string, metadata?: Record<string, unknown>) {
     return this.addLog('success', message, metadata);
   }
 

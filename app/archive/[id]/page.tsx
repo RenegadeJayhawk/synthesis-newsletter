@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +17,6 @@ interface NewsletterData extends ParsedNewsletter {
 
 export default function NewsletterDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [newsletter, setNewsletter] = useState<NewsletterData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

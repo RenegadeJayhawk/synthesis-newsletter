@@ -1,7 +1,7 @@
 import { db, schema } from '@/db';
 import { eq, desc } from 'drizzle-orm';
 import type { Newsletter, NewNewsletter, Article, NewArticle } from '@/db/schema/newsletters';
-import type { ParsedNewsletter, NewsletterArticle } from '@/types/newsletter';
+import type { ParsedNewsletter } from '@/types/newsletter';
 
 /**
  * Database service for newsletter operations

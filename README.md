@@ -1,6 +1,6 @@
 # The Synthesis — newsletter site
 
-Static-exported [Next.js 15](https://nextjs.org/) site for **The Synthesis**, an AI newsletter experience (App Router, TypeScript, Tailwind CSS). Full product notes, structure, and troubleshooting live in **[DOCUMENTATION.md](./DOCUMENTATION.md)**.
+Server-backed [Next.js 15](https://nextjs.org/) site for **The Synthesis**, combining an editorial frontend with newsletter APIs, scheduled generation, and persistent storage surfaces. Full product notes, structure, and troubleshooting live in **[DOCUMENTATION.md](./DOCUMENTATION.md)**.
 
 ## Requirements
 
@@ -22,32 +22,17 @@ On Windows you can use `./scripts/dev-setup.ps1` after cloning to install depend
 | Command | Purpose |
 |--------|---------|
 | `npm run dev` | Dev server (Turbopack) |
-| `npm run build` | Production build (static export only if `BUILD_EXPORT=1`) |
-| `npm run build:export` | Static export build (`out/`) |
+| `npm run build` | Production Next.js build |
 | `npm run lint` | ESLint |
-| `npm run check:export` | Validate links in exported HTML |
 | `npm run start` | Serve production build (non-export) |
 
 `npm install` / `npm ci` runs **postinstall**, which executes `scripts/write-icons.js` and writes raster icons under `public/` (`favicon.ico`, PNG favicons, `apple-touch-icon.png`, `og-image.png`). Those files are required for metadata and social previews; do not delete the script without replacing the assets.
 
-## Static export and CI
+## Deployment model and CI
 
-Local dev normally runs **without** `output: 'export'`. For CI and static hosting, set `BUILD_EXPORT=1` so `next.config.js` enables static export.
+The repository is standardized on **server-backed Next.js deployment**. API routes under `app/api/`, scheduled generation in `vercel.json`, and the Drizzle/Postgres data layer all require a running Next.js server.
 
-**Windows (PowerShell):**
-
-```powershell
-$env:BUILD_EXPORT = '1'
-npm run build
-```
-
-**macOS / Linux:**
-
-```bash
-BUILD_EXPORT=1 npm run build
-```
-
-The [GitHub Actions workflow](.github/workflows/ci.yml) typechecks, runs a static export, checks links, runs manifest tests, HTTP probes, and accessibility checks. Custom headers from `next.config.js` are not applied by static hosts; configure them at your CDN if needed.
+The [GitHub Actions workflow](.github/workflows/ci.yml) validates the same path used in production: lint, typecheck, `npm run build`, boot the app with `npm run start`, then run HTTP smoke and accessibility checks against the live server.
 
 ## Repo map
 
@@ -55,7 +40,7 @@ The [GitHub Actions workflow](.github/workflows/ci.yml) typechecks, runs a stati
 - `components/` — UI and layout  
 - `lib/` — data, metadata, utilities  
 - `public/` — static assets (SVG icons committed; PNG/ICO from postinstall)  
-- `scripts/` — export checks, local server, icon generation  
+- `scripts/` — smoke checks, local utilities, icon generation  
 
 ## Contributing
 

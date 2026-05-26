@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Search, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,12 +9,22 @@ import { useTheme } from 'next-themes'
 import { useState, useEffect } from 'react'
 
 export default function Header() {
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const query = searchQuery.trim()
+
+    router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search')
+  }
 
   if (!mounted) {
     return null
@@ -52,13 +63,31 @@ export default function Header() {
 
           {/* Search and Actions */}
           <div className="flex items-center space-x-4">
-            <div className="relative hidden sm:block">
+            <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search articles..."
                 className="w-64 pl-10"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                aria-label="Search articles"
               />
-            </div>
+              <button type="submit" className="sr-only">
+                Submit search
+              </button>
+            </form>
+
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="sm:hidden"
+              aria-label="Open search"
+            >
+              <Link href="/search">
+                <Search className="h-4 w-4" />
+              </Link>
+            </Button>
             
             <Button
               variant="ghost"

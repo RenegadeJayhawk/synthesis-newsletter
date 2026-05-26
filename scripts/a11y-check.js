@@ -3,10 +3,9 @@ const pa11y = require('pa11y')
 const base = process.env.BASE_URL || 'http://127.0.0.1:8080'
 const pages = [
   '/',
-  '/articles',
-  '/about',
   '/archive',
-  '/contact'
+  '/newsletter',
+  '/search'
 ]
 
 async function run() {

@@ -49,8 +49,13 @@ export default function Footer() {
               Get the latest AI insights delivered to your inbox.
             </p>
             <div className="space-y-2">
+              <label htmlFor="footer-email" className="sr-only">
+                Email address
+              </label>
               <Input 
+                id="footer-email"
                 placeholder="Enter your email" 
+                aria-label="Email address"
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
               />
               <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">

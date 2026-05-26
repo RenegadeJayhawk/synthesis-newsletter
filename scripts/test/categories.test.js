@@ -1,15 +1,21 @@
 const fs = require('fs')
 const path = require('path')
 
-const outDir = path.join(__dirname, '..', '..', 'out')
 const categoriesPath = path.join(__dirname, '..', '..', 'lib', 'categories.ts')
+const footerPath = path.join(__dirname, '..', '..', 'components', 'layout', 'Footer', 'index.tsx')
 
-if (!fs.existsSync(outDir)) {
-  console.error('out/ directory not found — run build:export first')
+if (!fs.existsSync(categoriesPath)) {
+  console.error('lib/categories.ts not found')
+  process.exit(2)
+}
+
+if (!fs.existsSync(footerPath)) {
+  console.error('Footer component not found')
   process.exit(2)
 }
 
 const src = fs.readFileSync(categoriesPath, 'utf8')
+const footer = fs.readFileSync(footerPath, 'utf8')
 const categories = []
 const slugRe = /slug:\s*'([^']+)'/g
 let m
@@ -17,17 +23,21 @@ while ((m = slugRe.exec(src)) !== null) {
   categories.push({ slug: m[1] })
 }
 
+if (categories.length === 0) {
+  console.error('No categories found in lib/categories.ts')
+  process.exit(2)
+}
+
 let ok = true
 for (const c of categories) {
-  const f1 = path.join(outDir, `${c.slug}.html`)
-  const f2 = path.join(outDir, 'category', c.slug, 'index.html')
-  if (fs.existsSync(f1) || fs.existsSync(f2)) {
-    console.log('Found category:', c.slug)
+  const href = `href="/category/${c.slug}"`
+  if (footer.includes(href)) {
+    console.log('Found footer category link:', c.slug)
   } else {
-    console.error('Missing category export for', c.slug)
+    console.error('Missing footer category link for', c.slug)
     ok = false
   }
 }
 
 if (!ok) process.exit(2)
-console.log('All categories exported ✅')
+console.log('All categories validated ✅')

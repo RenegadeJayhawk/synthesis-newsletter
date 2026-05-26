@@ -7,7 +7,7 @@ export interface NotificationPayload {
   subject: string;
   message: string;
   status: 'success' | 'error';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class NotificationService {
@@ -38,7 +38,7 @@ class NotificationService {
   /**
    * Send success notification
    */
-  async sendSuccess(subject: string, message: string, metadata?: Record<string, any>): Promise<void> {
+  async sendSuccess(subject: string, message: string, metadata?: Record<string, unknown>): Promise<void> {
     await this.send({
       subject,
       message,
@@ -50,7 +50,7 @@ class NotificationService {
   /**
    * Send error notification
    */
-  async sendError(subject: string, message: string, metadata?: Record<string, any>): Promise<void> {
+  async sendError(subject: string, message: string, metadata?: Record<string, unknown>): Promise<void> {
     await this.send({
       subject,
       message,

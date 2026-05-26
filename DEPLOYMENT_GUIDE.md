@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide will walk you through deploying the AI Newsletter application to Vercel with full backend functionality including AI-powered newsletter generation.
+This guide covers the supported production model for this repository: a **server-backed Next.js deployment on Vercel**. Newsletter generation, cron execution, archive APIs, and database access do not work as a static export.
 
 ---
 
@@ -10,7 +10,8 @@ This guide will walk you through deploying the AI Newsletter application to Verc
 
 1. **Vercel Account** - Sign up at [vercel.com](https://vercel.com) (free tier works)
 2. **GitHub Account** - Your code repository
-3. **OpenAI API Key** - Get one from [platform.openai.com](https://platform.openai.com)
+3. **Gemini API key** for newsletter generation
+4. **Postgres connection string** for newsletter storage
 
 ---
 
@@ -52,8 +53,12 @@ git push origin main
 4. **Add Environment Variables**
    - Click "Environment Variables"
    - Add the following:
-     - **Name**: `OPENAI_API_KEY`
-     - **Value**: Your OpenAI API key
+       - **Name**: `GEMINI_API_KEY`
+       - **Value**: Your Gemini API key
+       - **Environment**: Production, Preview, Development (select all)
+    - Add the following:
+       - **Name**: `POSTGRES_URL`
+       - **Value**: Your Postgres connection string
      - **Environment**: Production, Preview, Development (select all)
    - Click "Add"
 
@@ -83,10 +88,9 @@ vercel
 # - Directory? ./
 # - Override settings? No
 
-# Add environment variable
-vercel env add OPENAI_API_KEY
-# Paste your OpenAI API key when prompted
-# Select: Production, Preview, Development
+# Add environment variables
+vercel env add GEMINI_API_KEY
+vercel env add POSTGRES_URL
 
 # Deploy to production
 vercel --prod
@@ -125,13 +129,14 @@ vercel --prod
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `OPENAI_API_KEY` | OpenAI API key for newsletter generation | Yes | `sk-...` |
+| `GEMINI_API_KEY` | Gemini API key for newsletter generation | Yes | `AIza...` |
+| `POSTGRES_URL` | Postgres connection string for newsletters and articles | Yes | `postgres://...` |
 
 ---
 
-## Database Configuration (Future Enhancement)
+## Database Configuration
 
-Currently, the app uses in-memory storage. To add persistent storage with Vercel Postgres:
+The current code path expects a Postgres-backed newsletter store via Drizzle. Configure the database before enabling newsletter generation in production.
 
 ### 1. Enable Vercel Postgres
 
@@ -189,7 +194,7 @@ CREATE INDEX idx_newsletters_generated_at ON newsletters(generated_at DESC);
 
 ## Troubleshooting
 
-### Issue: "OPENAI_API_KEY is not set"
+### Issue: "GEMINI_API_KEY is not set"
 
 **Solution**: 
 - Verify environment variable is added in Vercel dashboard

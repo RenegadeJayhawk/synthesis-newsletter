@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Calendar, Loader2 } from 'lucide-react';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -23,12 +23,33 @@ export default function NewsletterPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch the latest newsletter on mount
-  useEffect(() => {
-    fetchLatestNewsletter();
+  const parseNewsletterContent = useCallback(async (rawNewsletter: Newsletter): Promise<ParsedNewsletter> => {
+    try {
+      const response = await fetch('/api/newsletter/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newsletter: rawNewsletter }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to parse newsletter');
+      }
+
+      const data = await response.json();
+      return data.parsed;
+    } catch (parseError) {
+      console.error('Error parsing newsletter:', parseError);
+      return {
+        ...rawNewsletter,
+        overview: 'Newsletter overview',
+        articles: [],
+      };
+    }
   }, []);
 
-  const fetchLatestNewsletter = async () => {
+  const fetchLatestNewsletter = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -37,19 +58,23 @@ export default function NewsletterPage() {
       const data = await response.json();
       
       if (data.success && data.newsletter) {
-        // Parse the newsletter content
         const parsed = await parseNewsletterContent(data.newsletter);
         setNewsletter(parsed);
       } else {
         setError('No newsletter available. Click "Refresh Newsletter" to generate one.');
       }
-    } catch (err) {
+    } catch (fetchError) {
       setError('Failed to load newsletter');
-      console.error('Error fetching newsletter:', err);
+      console.error('Error fetching newsletter:', fetchError);
     } finally {
       setLoading(false);
     }
-  };
+  }, [parseNewsletterContent]);
+
+  // Fetch the latest newsletter on mount
+  useEffect(() => {
+    void fetchLatestNewsletter();
+  }, [fetchLatestNewsletter]);
 
   const handleGenerateNewsletter = async () => {
     try {
@@ -74,37 +99,6 @@ export default function NewsletterPage() {
       console.error('Error generating newsletter:', err);
     } finally {
       setGenerating(false);
-    }
-  };
-
-  /**
-   * Parse newsletter content and add images
-   */
-  const parseNewsletterContent = async (rawNewsletter: Newsletter): Promise<ParsedNewsletter> => {
-    try {
-      // Call API to parse newsletter
-      const response = await fetch('/api/newsletter/parse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ newsletter: rawNewsletter }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to parse newsletter');
-      }
-
-      const data = await response.json();
-      return data.parsed;
-    } catch (error) {
-      console.error('Error parsing newsletter:', error);
-      // Fallback: return basic structure
-      return {
-        ...rawNewsletter,
-        overview: 'Newsletter overview',
-        articles: [],
-      };
     }
   };
 

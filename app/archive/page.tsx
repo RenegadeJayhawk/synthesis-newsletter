@@ -74,12 +74,17 @@ export default function ArchivePage() {
 
               {/* Search Bar */}
               <div className="max-w-2xl mx-auto relative">
+                <label htmlFor="archive-search" className="sr-only">
+                  Search newsletters by date
+                </label>
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
+                  id="archive-search"
                   type="text"
                   placeholder="Search by date..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search newsletters by date"
                   className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30"
                 />
               </div>
@@ -181,7 +186,7 @@ export default function ArchivePage() {
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-400 text-sm">
-                          Explore this week's top AI & GenAI stories, breakthroughs, and insights.
+                          Explore this week&apos;s top AI & GenAI stories, breakthroughs, and insights.
                         </p>
 
                         <div className="mt-4 text-blue-600 dark:text-blue-400 font-medium text-sm group-hover:underline">
@@ -211,9 +216,14 @@ export default function ArchivePage() {
                 Get the latest AI insights delivered to your inbox every week.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                <label htmlFor="archive-subscribe-email" className="sr-only">
+                  Email address
+                </label>
                 <input
+                  id="archive-subscribe-email"
                   type="email"
                   placeholder="Enter your email"
+                  aria-label="Email address"
                   className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30"
                 />
                 <button className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-medium transition-colors">

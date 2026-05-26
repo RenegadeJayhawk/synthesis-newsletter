@@ -1,27 +1,29 @@
 # Prioritized backlog
 
-Ordered by impact on **trust (SEO, assets, CI)** first, then **product completeness**, then **hygiene**. Within a tier, smaller items are listed before larger ones.
+Ordered by impact on **ship readiness and trust** first, then **product completeness**, then **hygiene**. Items below reflect the current full-site audit and assume a **server-backed Next.js + Vercel** deployment model.
 
 ---
 
-## P0 — Fix broken or misleading surfaces (do first) — **done**
+## P0 — Deployment and integrity blockers
 
 | ID | Item | Notes |
 |----|------|--------|
-| P0-1 | Align **public assets** with `lib/metadata.ts` and `site.webmanifest` | `scripts/write-icons.js` now emits `apple-touch-icon.png` and `og-image.png`; metadata + manifest point at committed/generated PNGs, ICO, and SVG. |
-| P0-2 | Remove or replace **placeholder verification** in `lib/metadata.ts` | Placeholder `verification` block removed; add real keys when you have them. |
-| P0-3 | **Rewrite root `README.md`** | Replaced boilerplate; links `DOCUMENTATION.md`, scripts, export toggle, CI. |
+| P0-1 | Standardize on **server-backed deployment** | Remove static-export assumptions from CI and docs; production path is `npm run build` + `npm run start` on Vercel. |
+| P0-2 | Keep **build, lint, and typecheck green** | Missing dependencies are restored; maintain `lint`, `tsc`, and `build` together as the release gate. |
+| P0-3 | Remove or quarantine **stale `out/` validation** | Legacy export artifacts can mask broken routes; do not treat `out/` as release validation for this app. |
+| P0-4 | Document required **runtime environment** | Maintain `GEMINI_API_KEY`, `POSTGRES_URL`, cron behavior, and deployment expectations in docs. |
 
 ---
 
-## P1 — Quality gates and CI correctness — **done**
+## P1 — Missing pages and broken promises
 
 | ID | Item | Notes |
 |----|------|--------|
-| P1-1 | Run **`npm run lint` in CI** | Lint step after `npm ci`; ESLint clean (scripts CJS override, `catch {}`, config/types fixes). |
-| P1-2 | Run **`scripts/test/categories.test.js` in CI** | Runs after export + manifest + link check; test reads `lib/categories.ts` via regex (no broken `require` of `.ts`). |
-| P1-3 | **Deduplicate export build** in `.github/workflows/ci.yml` | Single `npm run build:export`; manifest + `check:export` reuse that `out/`. |
-| P1-4 | Align **Node version** | `engines.node` `>=18.18.0` in `package.json`; CI matrix `20.x`; `setup-node` npm cache enabled. |
+| P1-1 | Add real **Articles** page | Header/footer link exists, but no source route currently owns `/articles`. |
+| P1-2 | Add real **About** page | Header/footer link exists, but no source route currently owns `/about`. |
+| P1-3 | Add **Contact** page and form | Footer exposes `/contact`; implement form submission, validation, and success/error states. |
+| P1-4 | Add **Privacy** and **Terms** pages | Legal/footer links currently promise content that is not defined in source routes. |
+| P1-5 | Add **category archive pages** | Footer links to `/category/*`; route family and data model are missing. |
 
 ---
 
@@ -29,10 +31,10 @@ Ordered by impact on **trust (SEO, assets, CI)** first, then **product completen
 
 | ID | Item | Notes |
 |----|------|--------|
-| P2-1 | Implement **header search** | Client filter, dedicated search page, or external search—pick one and document. |
-| P2-2 | Wire **Subscribe** (header + newsletter flow) | Form action, email provider, or static-friendly service (e.g. embed). |
-| P2-3 | Wire **contact form** | Same pattern as subscribe; include validation and success/error UX. |
-| P2-4 | **Analytics: integrate or delete** | If keeping: `next/script`, env-based measurement ID, call `trackPageView` / events from the app. If not: remove unused `lib/analytics.ts` or stub clearly. |
+| P2-1 | Implement **header search** | Dedicated search page shipped. Follow-up: document behavior and add search analytics if kept. |
+| P2-2 | Wire **Subscribe** across header, footer, and CTA sections | Connect to provider or internal API; include validation and source attribution. |
+| P2-3 | Harden **newsletter generation UX** | Disable duplicate submits, expose clearer empty-state copy, and handle backend failures with actionable messaging. |
+| P2-4 | **Analytics: integrate or delete** | If keeping: load provider script, route page views, and track newsletter/signup conversion events. |
 
 ---
 
@@ -40,8 +42,9 @@ Ordered by impact on **trust (SEO, assets, CI)** first, then **product completen
 
 | ID | Item | Notes |
 |----|------|--------|
-| P3-1 | Add **`public/robots.txt`** | Match production domain when known. |
-| P3-2 | Add **sitemap** | Static `public/sitemap.xml` or build step from article slugs + static routes. |
+| P3-1 | Add **robots.txt** | Match the production domain and disallow only non-public surfaces. |
+| P3-2 | Add **sitemap** | Generate from article slugs plus top-level editorial routes. |
+| P3-3 | Verify **canonical/site identity** | Replace placeholder social links and confirm production domain in metadata. |
 
 ---
 
@@ -53,18 +56,19 @@ Ordered by impact on **trust (SEO, assets, CI)** first, then **product completen
 | P4-2 | Fix **`PageWrapper` props typing** | e.g. `children: ReactNode` on the interface. |
 | P4-3 | Add **`LICENSE`** | If repo is or will be shared/open. |
 | P4-4 | Enable **Dependabot or Renovate** | Scheduled dependency PRs. |
-| P4-5 | Add **smoke E2E** (optional) | e.g. Playwright: home, one article, one category, against dev or `out/`. |
+| P4-5 | Add **smoke E2E** | Cover home, one article, newsletter, and one real top-level info page against a running Next server. |
 | P4-6 | **CSP** (when adding third-party scripts) | Tighten `next.config.js` headers after analytics/embeds exist. |
+| P4-7 | Resolve **React 19 peer warnings** | `react-spring` transitive peers still target React 18. Audit before upgrading UI/runtime dependencies further. |
 
 ---
 
-## Suggested first sprint (minimal path to “credible ship”)
+## Suggested next sprint
 
-1. P0-1, P0-2, P0-3  
-2. P1-1, P1-2, P1-3  
-3. P2-2 or P2-3 (whichever matters more for launch)  
-4. P3-1, P3-2  
+1. P1-1 through P1-4  
+2. P2-2  
+3. P2-4  
+4. P3-1 through P3-3  
 
 ---
 
-*Derived from codebase review; update IDs and order as items complete.*
+*Updated from the full-site audit; revise statuses as pages and integrations land.*
