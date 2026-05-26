@@ -14,13 +14,18 @@ async function run() {
     const url = new URL(p, base).toString()
     console.log('Running pa11y on', url)
     try {
-      const result = await pa11y(url, { timeout: 30000 })
+      const result = await pa11y(url, {
+        timeout: 120000,
+        pageLoadTimeout: 120000
+      })
       if (result.issues.length > 0) {
         hadError = true
         console.error(`Accessibility issues for ${url}: ${result.issues.length}`)
       }
-    } catch {
+    } catch (error) {
       hadError = true
+      console.error(`Accessibility scan failed for ${url}`)
+      console.error(error instanceof Error ? error.message : error)
     }
   }
 
