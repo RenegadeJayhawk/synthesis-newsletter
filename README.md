@@ -17,6 +17,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 On Windows you can use `./scripts/dev-setup.ps1` after cloning to install dependencies and prepare the tree.
 
+To bind a port explicitly, use the Next.js CLI directly:
+
+```bash
+npx next dev -p 3000
+```
+
 ## Scripts
 
 | Command | Purpose |
@@ -25,6 +31,20 @@ On Windows you can use `./scripts/dev-setup.ps1` after cloning to install depend
 | `npm run build` | Production Next.js build |
 | `npm run lint` | ESLint |
 | `npm run start` | Serve production build (non-export) |
+
+For explicit port in production mode:
+
+```bash
+npx next start -p 3000
+```
+
+## Admin generation security
+
+Newsletter generation endpoints are protected. Configure these environment variables before using admin generation flows:
+
+- `NEWSLETTER_ADMIN_TOKEN`: bearer token for privileged API calls to `/api/newsletter/generate`.
+- `NEWSLETTER_ADMIN_UI_PASSWORD`: password required by `/api/newsletter/admin-generate` and the Admin Tools panel in `/newsletter`.
+- `CRON_SECRET`: authorization secret for `/api/cron/generate-newsletter`.
 
 `npm install` / `npm ci` runs **postinstall**, which executes `scripts/write-icons.js` and writes raster icons under `public/` (`favicon.ico`, PNG favicons, `apple-touch-icon.png`, `og-image.png`). Those files are required for metadata and social previews; do not delete the script without replacing the assets.
 

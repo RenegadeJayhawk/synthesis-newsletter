@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 interface ArticlePageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export function generateStaticParams() {
@@ -18,8 +18,9 @@ export function generateStaticParams() {
   }));
 }
 
-export default function ArticlePage({ params }: ArticlePageProps) {
-  const article = articles.find((article) => article.slug === params.slug);
+export default async function ArticlePage({ params }: ArticlePageProps) {
+  const { slug } = await params;
+  const article = articles.find((article) => article.slug === slug);
 
   if (!article) {
     notFound();

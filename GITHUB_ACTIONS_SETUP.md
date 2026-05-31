@@ -26,7 +26,7 @@ You need to add two secrets to your GitHub repository:
 
 #### Secret 1: CRON_SECRET
 - **Name:** `CRON_SECRET`
-- **Value:** `RKpqbEKZ5zKpq5NNZ5S6bkwbBQawwgRHyCvpWezn6B0=`
+- **Value:** `[generate a new 32+ byte random secret]`
 - Click **Add secret**
 
 #### Secret 2: VERCEL_DEPLOYMENT_URL
@@ -43,7 +43,7 @@ The cron endpoint still needs the secret to authorize requests:
 3. Go to **Settings** → **Environment Variables**
 4. Add:
    - **Name:** `CRON_SECRET`
-   - **Value:** `RKpqbEKZ5zKpq5NNZ5S6bkwbBQawwgRHyCvpWezn6B0=`
+  - **Value:** `[same value used in GitHub secret]`
    - **Environment:** All (Production, Preview, Development)
 5. Click **Save**
 6. **Redeploy** your project (Settings → Deployments → Redeploy latest)

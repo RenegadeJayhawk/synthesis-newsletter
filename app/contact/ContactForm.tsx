@@ -24,6 +24,11 @@ const initialFormState: FormState = {
   message: '',
 }
 
+type ContactFormProps = {
+  initialTopic?: string
+  initialEmail?: string
+}
+
 function validateForm(form: FormState) {
   if (!form.name.trim()) {
     return 'Please enter your name.'
@@ -48,15 +53,24 @@ function validateForm(form: FormState) {
   return null
 }
 
-export default function ContactForm() {
+export default function ContactForm({ initialTopic = '', initialEmail = '' }: ContactFormProps) {
   const [form, setForm] = useState<FormState>(initialFormState)
   const [submitting, setSubmitting] = useState(false)
   const [submission, setSubmission] = useState<SubmissionState>({ status: 'idle', message: null })
 
+  const topicPrefill = initialTopic.trim()
+  const emailPrefill = initialEmail.trim()
+
+  const effectiveForm = {
+    ...form,
+    topic: form.topic || topicPrefill,
+    email: form.email || emailPrefill,
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const validationError = validateForm(form)
+    const validationError = validateForm(effectiveForm)
     if (validationError) {
       setSubmission({ status: 'error', message: validationError })
       return
@@ -71,7 +85,7 @@ export default function ContactForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(effectiveForm),
       })
 
       const data = (await response.json()) as { success: boolean; message?: string; error?: string }
@@ -138,7 +152,7 @@ export default function ContactForm() {
             <Input
               id="contact-email"
               type="email"
-              value={form.email}
+                value={effectiveForm.email}
               onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
               placeholder="you@example.com"
               autoComplete="email"
@@ -152,7 +166,7 @@ export default function ContactForm() {
           </label>
           <Input
             id="contact-topic"
-            value={form.topic}
+            value={effectiveForm.topic}
             onChange={(event) => setForm((current) => ({ ...current, topic: event.target.value }))}
             placeholder="Story idea, partnership, correction, or question"
           />
@@ -171,14 +185,19 @@ export default function ContactForm() {
           />
         </div>
 
-        {submission.message ? (
+        {submission.message && submission.status === 'success' ? (
           <div
-            className={`mt-6 rounded-xl border px-4 py-3 text-sm ${
-              submission.status === 'success'
-                ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200'
-                : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200'
-            }`}
-            role={submission.status === 'error' ? 'alert' : 'status'}
+            className="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200"
+            role="status"
+          >
+            {submission.message}
+          </div>
+        ) : null}
+
+        {submission.message && submission.status === 'error' ? (
+          <div
+            className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+            role="alert"
           >
             {submission.message}
           </div>

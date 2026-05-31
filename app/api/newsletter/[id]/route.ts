@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { newsletterDb } from '@/lib/db/newsletterDbService';
+import { applyRateLimit, createRequestId } from '@/lib/apiSecurity';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,17 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimitResponse = applyRateLimit(request, {
+    key: 'newsletter-id',
+    limit: 120,
+    windowMs: 60_000,
+  });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const requestId = createRequestId();
+
   try {
     const { id } = await params;
     const newsletter = await newsletterDb.getNewsletterById(id);
@@ -29,11 +41,12 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error('Error fetching newsletter:', error);
+    console.error(`[${requestId}] Error fetching newsletter:`, error);
     
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch newsletter'
+      error: 'Failed to fetch newsletter',
+      requestId,
     }, { status: 500 });
   }
 }

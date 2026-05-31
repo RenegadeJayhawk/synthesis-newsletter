@@ -55,8 +55,8 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline">
-                Subscribe to Newsletter
+              <Button asChild size="lg" variant="outline">
+                <Link href="/contact?topic=Newsletter%20subscription">Subscribe to Newsletter</Link>
               </Button>
             </div>
             
@@ -141,9 +141,11 @@ export default function HomePage() {
               Get the latest AI insights delivered to your inbox every week. 
               Join thousands of researchers, engineers, and enthusiasts.
             </p>
-            <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Subscribe Now
-              <ArrowRight className="ml-2 h-4 w-4" />
+            <Button asChild size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Link href="/contact?topic=Newsletter%20subscription">
+                Subscribe Now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>

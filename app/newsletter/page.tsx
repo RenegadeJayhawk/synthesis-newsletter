@@ -7,47 +7,14 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import { NewsletterArticleList, NewsletterOverview } from '@/components/newsletter';
 import { ParsedNewsletter } from '@/types/newsletter';
 
-interface Newsletter {
-  id: string;
-  title: string;
-  weekStart: string;
-  weekEnd: string;
-  content: string;
-  generatedAt: string;
-  model: string;
-}
-
 export default function NewsletterPage() {
   const [newsletter, setNewsletter] = useState<ParsedNewsletter | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [adminGenerating, setAdminGenerating] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const parseNewsletterContent = useCallback(async (rawNewsletter: Newsletter): Promise<ParsedNewsletter> => {
-    try {
-      const response = await fetch('/api/newsletter/parse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ newsletter: rawNewsletter }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to parse newsletter');
-      }
-
-      const data = await response.json();
-      return data.parsed;
-    } catch (parseError) {
-      console.error('Error parsing newsletter:', parseError);
-      return {
-        ...rawNewsletter,
-        overview: 'Newsletter overview',
-        articles: [],
-      };
-    }
-  }, []);
 
   const fetchLatestNewsletter = useCallback(async () => {
     try {
@@ -58,8 +25,7 @@ export default function NewsletterPage() {
       const data = await response.json();
       
       if (data.success && data.newsletter) {
-        const parsed = await parseNewsletterContent(data.newsletter);
-        setNewsletter(parsed);
+        setNewsletter(data.newsletter);
       } else {
         setError('No newsletter available. Click "Refresh Newsletter" to generate one.');
       }
@@ -69,36 +35,62 @@ export default function NewsletterPage() {
     } finally {
       setLoading(false);
     }
-  }, [parseNewsletterContent]);
+  }, []);
 
   // Fetch the latest newsletter on mount
   useEffect(() => {
     void fetchLatestNewsletter();
   }, [fetchLatestNewsletter]);
 
-  const handleGenerateNewsletter = async () => {
+  const handleRefreshNewsletter = async () => {
     try {
-      setGenerating(true);
+      setRefreshing(true);
       setError(null);
-      
-      const response = await fetch('/api/newsletter/generate', {
-        method: 'POST',
-      });
-      
-      const data = await response.json();
-      
-      if (data.success && data.newsletter) {
-        // Parse the newsletter content
-        const parsed = await parseNewsletterContent(data.newsletter);
-        setNewsletter(parsed);
-      } else {
-        setError(data.error || 'Failed to generate newsletter');
-      }
-    } catch (err) {
-      setError('Failed to generate newsletter');
-      console.error('Error generating newsletter:', err);
+      await fetchLatestNewsletter();
+    } catch (refreshError) {
+      setError('Failed to refresh newsletter');
+      console.error('Error refreshing newsletter:', refreshError);
     } finally {
-      setGenerating(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleAdminGenerateNewsletter = async () => {
+    if (!adminPassword.trim()) {
+      setAdminMessage('Enter the admin password to generate a newsletter.');
+      return;
+    }
+
+    try {
+      setAdminGenerating(true);
+      setAdminMessage(null);
+
+      const response = await fetch('/api/newsletter/admin-generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          adminPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.newsletter) {
+        setAdminMessage(data.error || 'Admin generation failed.');
+        return;
+      }
+
+      setNewsletter(data.newsletter as ParsedNewsletter);
+      setAdminMessage('Newsletter generated successfully.');
+      setAdminPassword('');
+      setError(null);
+    } catch (adminGenerateError) {
+      setAdminMessage('Admin generation failed.');
+      console.error('Error generating admin newsletter:', adminGenerateError);
+    } finally {
+      setAdminGenerating(false);
     }
   };
 
@@ -118,14 +110,14 @@ export default function NewsletterPage() {
           </div>
           
           <Button
-            onClick={handleGenerateNewsletter}
-            disabled={generating}
+            onClick={handleRefreshNewsletter}
+            disabled={refreshing}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shrink-0"
           >
-            {generating ? (
+            {refreshing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                Refreshing...
               </>
             ) : (
               <>
@@ -135,6 +127,40 @@ export default function NewsletterPage() {
             )}
           </Button>
         </div>
+
+        <details className="mb-8 rounded-lg border border-border bg-muted/20 p-4">
+          <summary className="cursor-pointer text-sm font-semibold">Admin Tools</summary>
+          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="space-y-2">
+              <label htmlFor="admin-password" className="text-sm font-medium">
+                Admin password
+              </label>
+              <input
+                id="admin-password"
+                type="password"
+                value={adminPassword}
+                onChange={(event) => setAdminPassword(event.target.value)}
+                autoComplete="current-password"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              />
+            </div>
+            <Button
+              onClick={handleAdminGenerateNewsletter}
+              disabled={adminGenerating}
+              className="bg-gradient-to-r from-slate-900 to-slate-700 hover:from-slate-800 hover:to-slate-600"
+            >
+              {adminGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate New Newsletter'
+              )}
+            </Button>
+          </div>
+          {adminMessage ? <p className="mt-3 text-sm text-muted-foreground">{adminMessage}</p> : null}
+        </details>
 
         {/* Error Message */}
         {error && (

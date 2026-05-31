@@ -215,21 +215,24 @@ export default function ArchivePage() {
               <p className="text-xl text-blue-100 mb-8">
                 Get the latest AI insights delivered to your inbox every week.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" action="/contact" method="get">
                 <label htmlFor="archive-subscribe-email" className="sr-only">
                   Email address
                 </label>
                 <input
                   id="archive-subscribe-email"
+                  name="email"
                   type="email"
                   placeholder="Enter your email"
                   aria-label="Email address"
+                  required
                   className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30"
                 />
-                <button className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-medium transition-colors">
+                <input type="hidden" name="topic" value="Newsletter subscription" />
+                <button type="submit" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-medium transition-colors">
                   Subscribe
                 </button>
-              </div>
+              </form>
             </motion.div>
           </div>
         </div>

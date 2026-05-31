@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createNewsletter } from '@/lib/newsletterService';
-import { newsletterDb } from '@/lib/db/newsletterDbService';
-import { parseNewsletter } from '@/lib/newsletterParser';
-import { addImagesToArticles } from '@/lib/imageService';
+import { applyRateLimit, createRequestId, requireBearerToken } from '@/lib/apiSecurity';
+import { generateAndPersistNewsletter } from '@/lib/newsletterGeneration';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,58 +9,38 @@ export const dynamic = 'force-dynamic';
  * POST /api/newsletter/generate
  * Generate a new newsletter, parse it, and save to database
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const rateLimitResponse = applyRateLimit(request, {
+    key: 'newsletter-generate',
+    limit: 6,
+    windowMs: 60_000,
+  });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const authResponse = requireBearerToken(request, 'NEWSLETTER_ADMIN_TOKEN');
+  if (authResponse) {
+    return authResponse;
+  }
+
+  const requestId = createRequestId();
+
   try {
-    console.log('Starting newsletter generation...');
-    
-    // Generate the newsletter content using Gemini
-    const newsletter = await createNewsletter();
-    
-    console.log('Newsletter generated, parsing content...');
-    
-    // Parse the newsletter to extract articles
-    const parsedNewsletter = parseNewsletter(newsletter);
-    
-    console.log(`Parsed ${parsedNewsletter.articles.length} articles from newsletter`);
-    
-    // Assign images to articles
-    const articlesWithImages = await addImagesToArticles(parsedNewsletter.articles);
-    parsedNewsletter.articles = articlesWithImages;
-    
-    console.log('Images assigned, saving to database...');
-    
-    // Save to database
-    const savedNewsletter = await newsletterDb.createNewsletter(
-      {
-        weekStart: newsletter.weekStart,
-        weekEnd: newsletter.weekEnd,
-        content: newsletter.content,
-        model: newsletter.model,
-        generatedAt: new Date(newsletter.generatedAt),
-      },
-      parsedNewsletter
-    );
-    
-    console.log('Newsletter saved successfully');
-    
-    // Fetch the complete newsletter with articles
-    const completeNewsletter = await newsletterDb.getNewsletterById(savedNewsletter.id);
-    
-    if (!completeNewsletter) {
-      throw new Error('Failed to retrieve saved newsletter');
-    }
+    const completeNewsletter = await generateAndPersistNewsletter();
     
     return NextResponse.json({
       success: true,
-      newsletter: newsletterDb.toApiFormat(completeNewsletter)
+      newsletter: completeNewsletter,
     }, { status: 201 });
     
   } catch (error) {
-    console.error('Error generating newsletter:', error);
+    console.error(`[${requestId}] Error generating newsletter:`, error);
     
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to generate newsletter'
+      error: 'Failed to generate newsletter',
+      requestId,
     }, { status: 500 });
   }
 }

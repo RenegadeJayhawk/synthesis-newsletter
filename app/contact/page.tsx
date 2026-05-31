@@ -2,7 +2,16 @@ import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
 import ContactForm from './ContactForm'
 
-export default function ContactPage() {
+interface ContactPageProps {
+  searchParams: Promise<{
+    topic?: string
+    email?: string
+  }>
+}
+
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const params = await searchParams
+
   return (
     <PageWrapper>
       <section className="border-b bg-muted/30">
@@ -21,7 +30,7 @@ export default function ContactPage() {
 
       <section className="py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <ContactForm />
+          <ContactForm initialTopic={params.topic} initialEmail={params.email} />
         </div>
       </section>
     </PageWrapper>

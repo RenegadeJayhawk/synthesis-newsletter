@@ -2,8 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseNewsletter } from '@/lib/newsletterParser';
 import { addImagesToArticles } from '@/lib/imageService';
 import { Newsletter } from '@/lib/newsletterService';
+import { applyRateLimit, createRequestId, requireBearerToken } from '@/lib/apiSecurity';
 
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = applyRateLimit(request, {
+    key: 'newsletter-parse',
+    limit: 15,
+    windowMs: 60_000,
+  });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const authResponse = requireBearerToken(request, 'NEWSLETTER_ADMIN_TOKEN');
+  if (authResponse) {
+    return authResponse;
+  }
+
+  const requestId = createRequestId();
+
   try {
     const body = await request.json();
     const { newsletter } = body as { newsletter: Newsletter };
@@ -30,11 +47,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error parsing newsletter:', error);
+    console.error(`[${requestId}] Error parsing newsletter:`, error);
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Failed to parse newsletter' 
+        error: 'Failed to parse newsletter',
+        requestId,
       },
       { status: 500 }
     );

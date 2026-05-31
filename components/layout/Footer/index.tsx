@@ -48,20 +48,24 @@ export default function Footer() {
             <p className="text-slate-300 text-sm mb-4">
               Get the latest AI insights delivered to your inbox.
             </p>
-            <div className="space-y-2">
+            <form className="space-y-2" action="/contact" method="get">
               <label htmlFor="footer-email" className="sr-only">
                 Email address
               </label>
               <Input 
                 id="footer-email"
+                name="email"
+                type="email"
                 placeholder="Enter your email" 
                 aria-label="Email address"
+                required
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
               />
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <input type="hidden" name="topic" value="Newsletter subscription" />
+              <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 Subscribe
               </Button>
-            </div>
+            </form>
           </div>
         </div>
 

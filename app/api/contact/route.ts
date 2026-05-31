@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { applyRateLimit, createRequestId } from '@/lib/apiSecurity'
 
 type ContactPayload = {
   name?: string
@@ -12,6 +13,17 @@ function isValidEmail(email: string) {
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = applyRateLimit(request, {
+    key: 'contact-submit',
+    limit: 8,
+    windowMs: 60_000,
+  })
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
+  const requestId = createRequestId()
+
   try {
     const payload = (await request.json()) as ContactPayload
 
@@ -36,8 +48,9 @@ export async function POST(request: Request) {
     }
 
     console.log('[Contact] Submission received', {
-      name,
-      email,
+      requestId,
+      hasName: Boolean(name),
+      emailDomain: email.includes('@') ? email.split('@')[1] : 'unknown',
       topic,
       messageLength: message.length,
       receivedAt: new Date().toISOString(),
@@ -48,10 +61,14 @@ export async function POST(request: Request) {
       message: 'Thanks for reaching out. The editorial team will review your note and reply if needed.',
     })
   } catch (error) {
-    console.error('[Contact] Failed to process submission', error)
+    console.error(`[${requestId}] [Contact] Failed to process submission`, error)
 
     return NextResponse.json(
-      { success: false, error: 'We could not process your message. Please try again.' },
+      {
+        success: false,
+        error: 'We could not process your message. Please try again.',
+        requestId,
+      },
       { status: 500 }
     )
   }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Moon, Sun } from 'lucide-react'
+import { Search, Moon, Sun, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useTheme } from 'next-themes'
@@ -13,6 +13,7 @@ export default function Header() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -24,6 +25,7 @@ export default function Header() {
     const query = searchQuery.trim()
 
     router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search')
+    setMobileMenuOpen(false)
   }
 
   if (!mounted) {
@@ -43,7 +45,7 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-6" aria-label="Primary navigation">
             <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
               Home
             </Link>
@@ -88,6 +90,18 @@ export default function Header() {
                 <Search className="h-4 w-4" />
               </Link>
             </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
+              onClick={() => setMobileMenuOpen((current) => !current)}
+            >
+              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
             
             <Button
               variant="ghost"
@@ -102,11 +116,36 @@ export default function Header() {
               )}
             </Button>
 
-            <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Subscribe
+            <Button asChild size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Link href="/contact?topic=Newsletter%20subscription">Subscribe</Link>
             </Button>
           </div>
         </div>
+
+        {mobileMenuOpen && (
+          <nav id="mobile-nav-menu" className="md:hidden border-t py-4" aria-label="Mobile navigation">
+            <div className="flex flex-col gap-2">
+              <Link href="/" className="rounded-md px-2 py-2 text-sm font-medium hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>
+                Home
+              </Link>
+              <Link href="/articles" className="rounded-md px-2 py-2 text-sm font-medium hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>
+                Articles
+              </Link>
+              <Link href="/archive" className="rounded-md px-2 py-2 text-sm font-medium hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>
+                Archive
+              </Link>
+              <Link href="/about" className="rounded-md px-2 py-2 text-sm font-medium hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>
+                About
+              </Link>
+              <Link href="/newsletter" className="rounded-md px-2 py-2 text-sm font-medium hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>
+                Newsletter
+              </Link>
+              <Link href="/contact?topic=Newsletter%20subscription" className="rounded-md px-2 py-2 text-sm font-medium hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>
+                Subscribe
+              </Link>
+            </div>
+          </nav>
+        )}
       </div>
     </header>
   )
