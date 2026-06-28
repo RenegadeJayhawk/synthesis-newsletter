@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowRight, TrendingUp, Users, BookOpen } from 'lucide-react'
 import ArticleCard from '@/components/article/ArticleCard'
 import PageWrapper from '@/components/layout/PageWrapper'
+import SubscribeForm from '@/components/newsletter/SubscribeForm'
 import { GenerativeArtCanvas } from '@/components/generative/GenerativeArtCanvas'
 import { articles } from '@/lib/data'
 
@@ -141,12 +142,7 @@ export default function HomePage() {
               Get the latest AI insights delivered to your inbox every week. 
               Join thousands of researchers, engineers, and enthusiasts.
             </p>
-            <Button asChild size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              <Link href="/contact?topic=Newsletter%20subscription">
-                Subscribe Now
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <SubscribeForm variant="inline" />
           </div>
         </div>
       </section>

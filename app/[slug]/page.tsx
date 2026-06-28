@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { articles } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import SubscribeForm from '@/components/newsletter/SubscribeForm';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -216,9 +217,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <p className="text-sm text-blue-100 mb-4">
                   Get the latest AI insights delivered to your inbox.
                 </p>
-                <Button className="w-full bg-white text-blue-600 hover:bg-blue-50">
-                  Subscribe Now
-                </Button>
+                <SubscribeForm variant="sidebar" />
               </div>
             </div>
           </div>

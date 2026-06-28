@@ -1,6 +1,6 @@
 import { db, schema } from '@/db';
 import { eq, desc, inArray, or, ilike } from 'drizzle-orm';
-import type { Newsletter, NewNewsletter, Article, NewArticle } from '@/db/schema/newsletters';
+import type { Newsletter, NewNewsletter, Article, NewArticle, Subscriber } from '@/db/schema/newsletters';
 import type { ParsedNewsletter } from '@/types/newsletter';
 
 /**
@@ -11,6 +11,7 @@ export class NewsletterDbService {
   private isLocalMock = !process.env.POSTGRES_URL;
   private mockNewsletters: Newsletter[] = [];
   private mockArticles: Article[] = [];
+  private mockSubscribers: Subscriber[] = [];
 
   constructor() {
     if (this.isLocalMock) {
@@ -373,6 +374,57 @@ export class NewsletterDbService {
       .from(schema.articles);
 
     return result.length;
+  }
+
+  /**
+   * Add a new subscriber email to the newsletter database
+   * Re-subscribes if they previously unsubscribed
+   */
+  async addSubscriber(email: string): Promise<boolean> {
+    const cleanEmail = email.toLowerCase().trim();
+    if (!cleanEmail) return false;
+
+    if (this.isLocalMock) {
+      const existing = this.mockSubscribers.find((s) => s.email === cleanEmail);
+      if (existing) {
+        existing.unsubscribedAt = null;
+      } else {
+        this.mockSubscribers.push({
+          id: 'mock-sub-' + Math.random().toString(36).substring(2, 11),
+          email: cleanEmail,
+          createdAt: new Date(),
+          unsubscribedAt: null,
+        });
+      }
+      return true;
+    }
+
+    try {
+      const existing = await db
+        .select()
+        .from(schema.subscribers)
+        .where(eq(schema.subscribers.email, cleanEmail))
+        .limit(1);
+
+      if (existing.length > 0) {
+        const sub = existing[0];
+        if (sub.unsubscribedAt) {
+          // Re-subscribe by clearing the unsubscribedAt timestamp
+          await db
+            .update(schema.subscribers)
+            .set({ unsubscribedAt: null })
+            .where(eq(schema.subscribers.email, cleanEmail));
+        }
+        return true;
+      }
+
+      // Insert new subscriber
+      await db.insert(schema.subscribers).values({ email: cleanEmail });
+      return true;
+    } catch (error) {
+      console.error(`Error adding subscriber "${cleanEmail}":`, error);
+      throw error;
+    }
   }
 
   /**
