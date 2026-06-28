@@ -1,5 +1,5 @@
 import { db, schema } from '@/db';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { eq, desc, inArray, or, ilike } from 'drizzle-orm';
 import type { Newsletter, NewNewsletter, Article, NewArticle } from '@/db/schema/newsletters';
 import type { ParsedNewsletter } from '@/types/newsletter';
 
@@ -284,6 +284,44 @@ export class NewsletterDbService {
       .select()
       .from(schema.articles)
       .where(inArray(schema.articles.category, categoriesList))
+      .orderBy(desc(schema.articles.createdAt))
+      .limit(limit);
+  }
+
+  /**
+   * Search articles by query string
+   */
+  async searchArticles(query: string, limit: number = 50): Promise<Article[]> {
+    const normalizedQuery = query.toLowerCase().trim();
+    if (!normalizedQuery) return [];
+
+    if (this.isLocalMock) {
+      return this.mockArticles
+        .filter((art) => {
+          return (
+            art.title.toLowerCase().includes(normalizedQuery) ||
+            art.summary.toLowerCase().includes(normalizedQuery) ||
+            (art.category && art.category.toLowerCase().includes(normalizedQuery)) ||
+            (art.author && art.author.toLowerCase().includes(normalizedQuery)) ||
+            (art.publication && art.publication.toLowerCase().includes(normalizedQuery))
+          );
+        })
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(0, limit);
+    }
+
+    return await db
+      .select()
+      .from(schema.articles)
+      .where(
+        or(
+          ilike(schema.articles.title, `%${query}%`),
+          ilike(schema.articles.summary, `%${query}%`),
+          ilike(schema.articles.category, `%${query}%`),
+          ilike(schema.articles.author, `%${query}%`),
+          ilike(schema.articles.publication, `%${query}%`)
+        )
+      )
       .orderBy(desc(schema.articles.createdAt))
       .limit(limit);
   }

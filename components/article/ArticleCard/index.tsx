@@ -6,14 +6,24 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Clock, Calendar } from 'lucide-react'
 import { Article } from '@/lib/data'
 
+// ExtendedArticle extends the default static Article interface to support dynamic articles
+// fetched from the database, which link back to their originating newsletter archive via sourceUrl.
+interface ExtendedArticle extends Article {
+  sourceUrl?: string
+}
+
 interface ArticleCardProps {
-  article: Article
+  article: ExtendedArticle
 }
 
 export default function ArticleCard({ article }: ArticleCardProps) {
+  // Route to the originating newsletter archive page if this is a dynamic article (sourceUrl present),
+  // otherwise route to the static article page (using the slug).
+  const href = article.sourceUrl || `/${article.slug}`
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-      <Link href={`/${article.slug}`}>
+      <Link href={href}>
         <div className="relative">
           {article.image && (
             <div className="relative h-48 w-full overflow-hidden">

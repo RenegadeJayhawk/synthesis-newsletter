@@ -31,8 +31,8 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 
 | ID | Item | Notes |
 |----|------|--------|
-| P2-1 | Implement **header search** | Dedicated search page shipped. Follow-up: document behavior and add search analytics if kept. |
-| P2-2 | Wire **Subscribe** across header, footer, and CTA sections | Connect to provider or internal API; include validation and source attribution. |
+| P2-1 | Implement **header search** | **Completed:** Full dynamic search querying database and mock articles, fixed Enter submit keydown navigation in header. |
+| P2-2 | Wire **Subscribe** across header, footer, and CTA sections | Create `subscribers` DB table, POST `/api/subscribe` endpoint, and direct AJAX submissions. |
 | P2-3 | Harden **newsletter generation UX** | Disable duplicate submits, expose clearer empty-state copy, and handle backend failures with actionable messaging. |
 | P2-4 | **Analytics: integrate or delete** | If keeping: load provider script, route page views, and track newsletter/signup conversion events. |
 
@@ -43,7 +43,7 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 | ID | Item | Notes |
 |----|------|--------|
 | P3-1 | Add **robots.txt** | Match the production domain and disallow only non-public surfaces. |
-| P3-2 | Add **sitemap** | Generate from article slugs plus top-level editorial routes. |
+| P3-2 | Add **sitemap** | Dynamically generate `/sitemap.xml` compiling static pages, category pages, and database articles. |
 | P3-3 | Verify **canonical/site identity** | Replace placeholder social links and confirm production domain in metadata. |
 
 ---

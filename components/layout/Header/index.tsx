@@ -72,6 +72,17 @@ export default function Header() {
                 className="w-64 pl-10"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  // Explicitly capture Enter key presses. In some browser/layout contexts,
+                  // standard HTML form submission on Enter might be hijacked or fail,
+                  // so we explicitly prevent default and push the search route here.
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    const query = searchQuery.trim()
+                    router.push(query ? `/search?q=${encodeURIComponent(query)}` : '/search')
+                    setMobileMenuOpen(false)
+                  }
+                }}
                 aria-label="Search articles"
               />
               <button type="submit" className="sr-only">
