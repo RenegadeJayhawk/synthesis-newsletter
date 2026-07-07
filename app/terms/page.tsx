@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Read the terms of service governing the use of The Synthesis website and newsletters.',
+}
 
 const lastUpdated = 'May 25, 2026'
 

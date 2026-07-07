@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import ArticleCard from '@/components/article/ArticleCard'
@@ -5,6 +6,11 @@ import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { articles } from '@/lib/data'
+
+export const metadata: Metadata = {
+  title: 'Articles',
+  description: 'Browse the latest research summaries, deep dives, and expert analysis covering artificial intelligence, machine learning, and advanced computing.',
+}
 
 const categories = Array.from(new Set(articles.map((article) => article.category)))
 

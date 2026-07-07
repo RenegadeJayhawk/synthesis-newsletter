@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { Calendar, Clock, User, ArrowLeft, Share2, Bookmark } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -6,11 +7,21 @@ import { articles } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import SubscribeForm from '@/components/newsletter/SubscribeForm';
+import { generateArticleMetadata } from '@/lib/metadata';
 
 interface ArticlePageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const article = articles.find((article) => article.slug === slug);
+  if (!article) {
+    return {};
+  }
+  return generateArticleMetadata(article);
 }
 
 export function generateStaticParams() {

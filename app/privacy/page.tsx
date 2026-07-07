@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Review the privacy policy and data governance practices of The Synthesis.',
+}
 
 const lastUpdated = 'May 25, 2026'
 

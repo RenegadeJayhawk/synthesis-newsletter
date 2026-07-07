@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
 import ContactForm from './ContactForm'
+
+export const metadata: Metadata = {
+  title: 'Contact Us',
+  description: 'Reach out to the team at The Synthesis. Send us inquiries, feedback, article suggestions, or newsletter subscription questions.',
+}
 
 interface ContactPageProps {
   searchParams: Promise<{

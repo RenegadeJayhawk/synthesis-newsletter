@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import { BookOpenText, BrainCircuit, Newspaper, Users } from 'lucide-react'
 import PageWrapper from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/badge'
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description: 'Learn about The Synthesis, our mission, and our editorial standards for coverage of artificial intelligence and machine learning.',
+}
 
 const pillars = [
   {
