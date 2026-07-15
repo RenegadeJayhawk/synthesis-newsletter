@@ -16,7 +16,15 @@ async function run() {
     try {
       const result = await pa11y(url, {
         timeout: 120000,
-        pageLoadTimeout: 120000
+        pageLoadTimeout: 120000,
+        chromeLaunchConfig: {
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
+          ]
+        }
       })
       if (result.issues.length > 0) {
         hadError = true
