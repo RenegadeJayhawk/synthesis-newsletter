@@ -416,6 +416,91 @@ The app will **fail** if `POSTGRES_URL` is not set. You must set up a database t
 
 ---
 
+## Possible Solution: Dynamic Story Pull Payload
+
+For external providers, ingest raw stories, then normalize to the site article format used by the newsletter UI/API.
+
+### Raw Ingestion Payload (Provider-Friendly)
+
+```json
+{
+  "stories": [
+    {
+      "title": "AI Breakthrough Announced",
+      "description": "New model achieves state-of-the-art results...",
+      "url": "https://techcrunch.com/...",
+      "source": "TechCrunch",
+      "published_at": "2026-08-16T10:30:00Z",
+      "author": "John Doe",
+      "image_url": "https://...",
+      "category": "technology",
+      "_source_api": "newsaggregator"
+    }
+  ],
+  "total_count": 87,
+  "source_stats": {
+    "newsaggregator": 34,
+    "hn": 16,
+    "newsapi": 21,
+    "gnews": 9,
+    "webz": 7
+  },
+  "sources_called": ["newsaggregator", "hn", "newsapi", "gnews", "webz"],
+  "processing_time_seconds": 4.3,
+  "timestamp": "2026-08-16T00:00:00Z"
+}
+```
+
+### Site-Ready Normalized Payload (Matches Current UI Types)
+
+```json
+{
+  "articles": [
+    {
+      "id": "story-techcrunch-ai-breakthrough-20260816",
+      "title": "AI Breakthrough Announced",
+      "summary": "New model achieves state-of-the-art results...",
+      "author": "John Doe",
+      "date": "2026-08-16T10:30:00Z",
+      "category": "technology",
+      "sourceUrl": "https://techcrunch.com/...",
+      "imageUrl": "https://...",
+      "content": "New model achieves state-of-the-art results...",
+      "metadata": {
+        "publication": "TechCrunch",
+        "tags": ["ai", "technology"],
+        "sourceApi": "newsaggregator"
+      }
+    }
+  ],
+  "totalCount": 87,
+  "sourceStats": {
+    "newsaggregator": 34,
+    "hn": 16,
+    "newsapi": 21,
+    "gnews": 9,
+    "webz": 7
+  },
+  "sourcesCalled": ["newsaggregator", "hn", "newsapi", "gnews", "webz"],
+  "processingTimeSeconds": 4.3,
+  "timestamp": "2026-08-16T00:00:00Z"
+}
+```
+
+### Mapping Notes
+
+- `stories[].description` -> `articles[].summary` (and optionally `articles[].content`)
+- `stories[].url` -> `articles[].sourceUrl`
+- `stories[].image_url` -> `articles[].imageUrl`
+- `stories[].published_at` -> `articles[].date`
+- `stories[].source` -> `articles[].metadata.publication`
+- `stories[]._source_api` -> `articles[].metadata.sourceApi`
+- snake_case top-level fields -> camelCase for site-facing payloads
+
+This keeps provider compatibility while matching the current site contract for rendering stories.
+
+---
+
 ## Summary
 
 ✅ **Database persistence implemented**  

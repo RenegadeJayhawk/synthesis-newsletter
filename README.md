@@ -53,7 +53,7 @@ Newsletter generation endpoints are protected. Configure these environment varia
 The production app is a server-backed Next.js deployment. Configure these environment variables in Vercel and in local development when using the associated features:
 
 - `GEMINI_API_KEY`: required for newsletter generation and admin generation flows.
-- `POSTGRES_URL`: required for the newsletter and content persistence layer.
+- `POSTGRES_URL`: required for the newsletter and content persistence layer; this project is now configured for Neon Postgres in Vercel.
 - `CRON_SECRET`: required by the scheduled newsletter generation endpoint.
 
 The deployment path used in CI and production is `npm run build` followed by `npm run start` on a running Next.js server. This repository no longer treats `out/` as a release artifact for validation.

@@ -5,6 +5,7 @@ const drizzleConfig = {
   dbCredentials: {
     url: process.env.POSTGRES_URL || '',
   },
+  // Neon Postgres is fully compatible with the existing Drizzle/Postgres schema.
 };
 
 export default drizzleConfig;
