@@ -33,7 +33,7 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 |----|------|--------|
 | P2-1 | Implement **header search** | **Completed:** Full dynamic search querying database and mock articles, fixed Enter submit keydown navigation in header. |
 | P2-2 | Wire **Subscribe** across header, footer, and CTA sections | **Completed:** Created `subscribers` DB table, POST `/api/subscribe` endpoint, and integrated unified AJAX `<SubscribeForm>` component across Footer, Homepage, Archive, and Article Sidebar. |
-| P2-3 | Harden **newsletter generation UX** | Disable duplicate submits, expose clearer empty-state copy, and handle backend failures with actionable messaging. |
+| P2-3 | Harden **newsletter generation UX** | **Completed:** Refresh and admin generation now guard duplicate submits, preserve the current issue during refresh, and surface actionable empty-state and failure messaging. |
 | P2-4 | **Analytics: integrate or delete** | If keeping: load provider script, route page views, and track newsletter/signup conversion events. |
 
 ---

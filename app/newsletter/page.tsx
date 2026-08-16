@@ -17,6 +17,18 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import { NewsletterArticleList, NewsletterOverview } from '@/components/newsletter';
 import { ParsedNewsletter } from '@/types/newsletter';
 
+type ActionableNotice = {
+  title: string;
+  message: string;
+  icon: typeof AlertCircle;
+  colorClass: string;
+};
+
+type NewsletterLoadResult =
+  | { kind: 'ok'; newsletter: ParsedNewsletter }
+  | { kind: 'empty' }
+  | { kind: 'error'; notice: ActionableNotice };
+
 export default function NewsletterPage() {
   const [newsletter, setNewsletter] = useState<ParsedNewsletter | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,56 +37,151 @@ export default function NewsletterPage() {
   const [adminPassword, setAdminPassword] = useState('');
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const [adminError, setAdminError] = useState<{ code: number; text: string } | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [newsletterError, setNewsletterError] = useState<ActionableNotice | null>(null);
   const [isEmpty, setIsEmpty] = useState(false);
 
-  const fetchLatestNewsletter = useCallback(async () => {
+  const getNewsletterErrorDetail = (code?: number, fallbackText?: string): ActionableNotice => {
+    switch (code) {
+      case 404:
+        return {
+          title: 'No newsletter available yet',
+          message: 'No newsletter has been generated for this environment yet. Use the Admin Tools panel to compile the first issue.',
+          icon: Newspaper,
+          colorClass: 'border-blue-200 dark:border-blue-950/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300',
+        };
+      case 429:
+        return {
+          title: 'Too Many Requests',
+          message: 'The newsletter endpoint is rate-limited. Please wait a moment and try again.',
+          icon: Clock,
+          colorClass: 'border-yellow-200 dark:border-yellow-950/50 bg-yellow-50/50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-300',
+        };
+      case 503:
+        return {
+          title: 'Service Unavailable',
+          message: 'The newsletter service is not configured or is temporarily unavailable. Verify the database and generation environment variables on the server.',
+          icon: ShieldAlert,
+          colorClass: 'border-red-200 dark:border-red-950/50 bg-red-50/50 dark:bg-red-950/20 text-red-800 dark:text-red-300',
+        };
+      case 500:
+        return {
+          title: 'Newsletter Fetch Failed',
+          message: 'The server could not retrieve the latest newsletter. Check the database connection and server logs, then retry.',
+          icon: AlertTriangle,
+          colorClass: 'border-red-200 dark:border-red-950/50 bg-red-50/50 dark:bg-red-950/20 text-red-800 dark:text-red-300',
+        };
+      default:
+        return {
+          title: 'Unable to Load Newsletter',
+          message: fallbackText || 'An unexpected error occurred while loading the newsletter. Please retry or inspect the server logs.',
+          icon: AlertCircle,
+          colorClass: 'border-red-200 dark:border-red-950/50 bg-red-50/50 dark:bg-red-950/20 text-red-800 dark:text-red-300',
+        };
+    }
+  };
+
+  const fetchLatestNewsletter = useCallback(async (): Promise<NewsletterLoadResult> => {
     try {
-      setLoading(true);
-      setError(null);
-      setIsEmpty(false);
-      
       const response = await fetch('/api/newsletter/latest');
-      
+
       if (response.status === 404) {
-        setIsEmpty(true);
-        setNewsletter(null);
-        return;
+        return { kind: 'empty' };
       }
 
+      let responseErrorText: string | undefined;
       if (!response.ok) {
-        throw new Error(`Server returned status ${response.status}`);
+        try {
+          const errorBody = await response.json() as { error?: string };
+          responseErrorText = errorBody.error;
+        } catch {
+          responseErrorText = undefined;
+        }
+        const loadError = new Error(responseErrorText || `Server returned status ${response.status}`) as Error & { status?: number };
+        loadError.status = response.status;
+        throw loadError;
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.newsletter) {
-        setNewsletter(data.newsletter);
-        setIsEmpty(false);
-      } else {
-        setIsEmpty(true);
-        setNewsletter(null);
+        return { kind: 'ok', newsletter: data.newsletter as ParsedNewsletter };
       }
+
+      return { kind: 'empty' };
     } catch (fetchError) {
-      setError('Failed to load newsletter. Please check your database connection or try again later.');
+      const status = fetchError instanceof Error && 'status' in fetchError ? (fetchError as Error & { status?: number }).status : undefined;
+      const notice = getNewsletterErrorDetail(
+        status,
+        fetchError instanceof Error ? fetchError.message : 'Failed to load newsletter. Please try again later.'
+      );
       console.error('Error fetching newsletter:', fetchError);
-    } finally {
-      setLoading(false);
+      return { kind: 'error', notice };
     }
   }, []);
 
   // Fetch the latest newsletter on mount
   useEffect(() => {
-    void fetchLatestNewsletter();
+    let cancelled = false;
+
+    const loadNewsletter = async () => {
+      setLoading(true);
+      setNewsletterError(null);
+      setIsEmpty(false);
+
+      const result = await fetchLatestNewsletter();
+
+      if (cancelled) {
+        return;
+      }
+
+      if (result.kind === 'ok') {
+        setNewsletter(result.newsletter);
+        setIsEmpty(false);
+        setNewsletterError(null);
+      } else if (result.kind === 'empty') {
+        setNewsletter(null);
+        setIsEmpty(true);
+        setNewsletterError(null);
+      } else {
+        setNewsletter(null);
+        setIsEmpty(false);
+        setNewsletterError(result.notice);
+      }
+
+      setLoading(false);
+    };
+
+    void loadNewsletter();
+
+    return () => {
+      cancelled = true;
+    };
   }, [fetchLatestNewsletter]);
 
   const handleRefreshNewsletter = async () => {
+    if (isGeneratingOrRefreshing) {
+      return;
+    }
+
     try {
       setRefreshing(true);
-      setError(null);
-      await fetchLatestNewsletter();
+      setNewsletterError(null);
+
+      const result = await fetchLatestNewsletter();
+
+      if (result.kind === 'ok') {
+        setNewsletter(result.newsletter);
+        setIsEmpty(false);
+      } else if (result.kind === 'empty') {
+        setNewsletter(null);
+        setIsEmpty(true);
+      } else {
+        setNewsletter(null);
+        setIsEmpty(false);
+        setNewsletterError(result.notice);
+      }
     } catch (refreshError) {
-      setError('Failed to refresh newsletter. Please check the network connection.');
+      setNewsletterError(getNewsletterErrorDetail(undefined, refreshError instanceof Error ? refreshError.message : 'Failed to refresh newsletter. Please check the network connection.'));
       console.error('Error refreshing newsletter:', refreshError);
     } finally {
       setRefreshing(false);
@@ -116,7 +223,7 @@ export default function NewsletterPage() {
       setNewsletter(data.newsletter as ParsedNewsletter);
       setAdminMessage('Newsletter generated successfully.');
       setAdminPassword('');
-      setError(null);
+      setNewsletterError(null);
       setIsEmpty(false);
     } catch (adminGenerateError) {
       setAdminError({
@@ -192,12 +299,13 @@ export default function NewsletterPage() {
           <Button
             onClick={handleRefreshNewsletter}
             disabled={isRefreshDisabled}
+            aria-busy={refreshing}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shrink-0"
           >
             {refreshing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Refreshing...
+                Checking latest issue...
               </>
             ) : (
               <>
@@ -231,6 +339,7 @@ export default function NewsletterPage() {
             <Button
               onClick={handleAdminGenerateNewsletter}
               disabled={isGenerateDisabled}
+              aria-busy={adminGenerating}
               className="bg-gradient-to-r from-slate-900 to-slate-700 hover:from-slate-800 hover:to-slate-600"
             >
               {adminGenerating ? (
@@ -270,12 +379,20 @@ export default function NewsletterPage() {
           );
         })()}
 
-        {/* Standard Error Message */}
-        {error && (
-          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-8">
-            <p className="text-red-800 dark:text-red-200">{error}</p>
-          </div>
-        )}
+        {newsletterError && (() => {
+          const Icon = newsletterError.icon;
+          return (
+            <div className={`mb-8 p-6 rounded-2xl border backdrop-blur-sm flex gap-4 items-start ${newsletterError.colorClass}`}>
+              <div className="p-2 bg-background/50 dark:bg-background/20 rounded-xl shrink-0 shadow-xs">
+                <Icon className="h-6 w-6" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <h4 className="font-bold text-lg">{newsletterError.title}</h4>
+                <p className="text-sm opacity-90 leading-relaxed">{newsletterError.message}</p>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Loading State */}
         {loading && !newsletter && (
@@ -292,8 +409,7 @@ export default function NewsletterPage() {
             </div>
             <h3 className="text-2xl font-bold tracking-tight mb-3">No newsletter compiled yet</h3>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Our automated weekly summary has not been generated for the database yet. 
-              If you are an administrator, you can compile the first weekly release using the Admin Tools panel above.
+              There is no published issue in the database yet. If you are an administrator, generate the first issue from the Admin Tools panel. If you expected one to exist, refresh the page after the generation job finishes.
             </p>
           </div>
         )}
