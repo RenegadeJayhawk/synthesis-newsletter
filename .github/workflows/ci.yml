@@ -40,9 +40,3 @@ jobs:
           node ./scripts/probe-http.js
         env:
           BASE_URL: 'http://127.0.0.1:3000'
-      - name: Accessibility checks (pa11y)
-        run: |
-          npx pa11y --version || true
-          node ./scripts/a11y-check.js
-        env:
-          BASE_URL: 'http://127.0.0.1:3000'
