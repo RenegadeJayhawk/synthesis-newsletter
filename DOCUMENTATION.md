@@ -22,7 +22,7 @@ This is the repository for "The Synthesis," a high-end AI newsletter website bui
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [Shadcn/ui](https://ui.shadcn.com/)
 - **Animations:** [Framer Motion](https://www.framer.com/motion/), [GSAP](https://greensock.com/gsap/), [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction)
-- **Deployment:** Static export, deployable on any static hosting provider.
+- **Deployment:** Server-backed Next.js deployment on Vercel with API routes, cron, and database access.
 
 ## Project Structure
 
@@ -81,11 +81,11 @@ To create a production-ready build, run:
 npm run build
 ```
 
-This will create a static export in the `out` directory, which can be deployed to any static hosting service.
+This builds the production Next.js server bundle that Vercel and other Node-compatible hosts can run.
 
 ## Deployment
 
-The website is deployed as a static site. You can use any static hosting provider like Vercel, Netlify, or GitHub Pages.
+The website is deployed as a server-backed Next.js app. Vercel is the supported deployment target in this repository.
 
 ## License
 

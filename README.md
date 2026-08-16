@@ -48,6 +48,16 @@ Newsletter generation endpoints are protected. Configure these environment varia
 
 `npm install` / `npm ci` runs **postinstall**, which executes `scripts/write-icons.js` and writes raster icons under `public/` (`favicon.ico`, PNG favicons, `apple-touch-icon.png`, `og-image.png`). Those files are required for metadata and social previews; do not delete the script without replacing the assets.
 
+## Runtime environment
+
+The production app is a server-backed Next.js deployment. Configure these environment variables in Vercel and in local development when using the associated features:
+
+- `GEMINI_API_KEY`: required for newsletter generation and admin generation flows.
+- `POSTGRES_URL`: required for the newsletter and content persistence layer.
+- `CRON_SECRET`: required by the scheduled newsletter generation endpoint.
+
+The deployment path used in CI and production is `npm run build` followed by `npm run start` on a running Next.js server. This repository no longer treats `out/` as a release artifact for validation.
+
 ## Deployment model and CI
 
 The repository is standardized on **server-backed Next.js deployment**. API routes under `app/api/`, scheduled generation in `vercel.json`, and the Drizzle/Postgres data layer all require a running Next.js server.
