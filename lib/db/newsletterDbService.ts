@@ -3,6 +3,66 @@ import { eq, desc, inArray, or, ilike } from 'drizzle-orm';
 import type { Newsletter, NewNewsletter, Article, NewArticle, Subscriber } from '@/db/schema/newsletters';
 import type { ParsedNewsletter } from '@/types/newsletter';
 
+export type DatabaseHealthState = {
+  mode: 'postgres' | 'mock';
+  ready: boolean;
+  fallback: 'postgres' | 'in-memory';
+  configured: boolean;
+  checkedAt: string;
+};
+
+export async function withDatabaseRetry<T>(
+  operation: () => Promise<T>,
+  options: { retries?: number; delayMs?: number } = {}
+): Promise<T> {
+  const retries = options.retries ?? 3;
+  const delayMs = options.delayMs ?? 250;
+
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+      const isRetryable = [
+        'timeout',
+        'econnreset',
+        'connection',
+        'temporarily unavailable',
+        'busy',
+        'network',
+        'reset by peer',
+        'connection terminated',
+        'transient',
+        'retryable',
+      ].some((token) => message.includes(token));
+
+      if (!isRetryable || attempt >= retries) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)));
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError ?? 'Database operation failed'));
+}
+
+export function getDatabaseHealth(): DatabaseHealthState {
+  const configured = Boolean(process.env.POSTGRES_URL && process.env.POSTGRES_URL.trim());
+
+  return {
+    mode: configured ? 'postgres' : 'mock',
+    ready: configured,
+    fallback: configured ? 'postgres' : 'in-memory',
+    configured,
+    checkedAt: new Date().toISOString(),
+  };
+}
+
 /**
  * Database service for newsletter operations
  * Provides CRUD operations for newsletters and articles
@@ -12,6 +72,10 @@ export class NewsletterDbService {
   private mockNewsletters: Newsletter[] = [];
   private mockArticles: Article[] = [];
   private mockSubscribers: Subscriber[] = [];
+
+  isPersistenceReady(): boolean {
+    return Boolean(process.env.POSTGRES_URL && process.env.POSTGRES_URL.trim());
+  }
 
   constructor() {
     if (this.isLocalMock) {
@@ -114,35 +178,35 @@ export class NewsletterDbService {
       return newsletter;
     }
 
-    // Insert newsletter
-    const [newsletter] = await db
-      .insert(schema.newsletters)
-      .values({
-        ...newsletterData,
-        overview: parsedData?.overview || null,
-      })
-      .returning();
+    return await withDatabaseRetry(async () => {
+      const [newsletter] = await db
+        .insert(schema.newsletters)
+        .values({
+          ...newsletterData,
+          overview: parsedData?.overview || null,
+        })
+        .returning();
 
-    // Insert articles if provided
-    if (parsedData?.articles && parsedData.articles.length > 0) {
-      const articlesData: NewArticle[] = parsedData.articles.map((article, index) => ({
-        newsletterId: newsletter.id,
-        title: article.title,
-        summary: article.summary,
-        content: article.content || article.summary,
-        category: article.category || 'General',
-        author: article.author || null,
-        publication: (article.metadata?.publication as string) || null,
-        imageUrl: article.imageUrl || null,
-        externalLink: article.sourceUrl || null,
-        position: index,
-        metadata: article.metadata ? JSON.parse(JSON.stringify(article.metadata)) : null,
-      }));
+      if (parsedData?.articles && parsedData.articles.length > 0) {
+        const articlesData: NewArticle[] = parsedData.articles.map((article, index) => ({
+          newsletterId: newsletter.id,
+          title: article.title,
+          summary: article.summary,
+          content: article.content || article.summary,
+          category: article.category || 'General',
+          author: article.author || null,
+          publication: (article.metadata?.publication as string) || null,
+          imageUrl: article.imageUrl || null,
+          externalLink: article.sourceUrl || null,
+          position: index,
+          metadata: article.metadata ? JSON.parse(JSON.stringify(article.metadata)) : null,
+        }));
 
-      await db.insert(schema.articles).values(articlesData);
-    }
+        await db.insert(schema.articles).values(articlesData);
+      }
 
-    return newsletter;
+      return newsletter;
+    });
   }
 
   /**
@@ -167,27 +231,29 @@ export class NewsletterDbService {
       };
     }
 
-    const newsletters = await db
-      .select()
-      .from(schema.newsletters)
-      .orderBy(desc(schema.newsletters.generatedAt))
-      .limit(1);
+    return await withDatabaseRetry(async () => {
+      const newsletters = await db
+        .select()
+        .from(schema.newsletters)
+        .orderBy(desc(schema.newsletters.generatedAt))
+        .limit(1);
 
-    if (newsletters.length === 0) {
-      return null;
-    }
+      if (newsletters.length === 0) {
+        return null;
+      }
 
-    const newsletter = newsletters[0];
-    const articles = await db
-      .select()
-      .from(schema.articles)
-      .where(eq(schema.articles.newsletterId, newsletter.id))
-      .orderBy(schema.articles.position);
+      const newsletter = newsletters[0];
+      const articles = await db
+        .select()
+        .from(schema.articles)
+        .where(eq(schema.articles.newsletterId, newsletter.id))
+        .orderBy(schema.articles.position);
 
-    return {
-      ...newsletter,
-      articles,
-    };
+      return {
+        ...newsletter,
+        articles,
+      };
+    });
   }
 
   /**
@@ -209,27 +275,29 @@ export class NewsletterDbService {
       };
     }
 
-    const newsletters = await db
-      .select()
-      .from(schema.newsletters)
-      .where(eq(schema.newsletters.id, id))
-      .limit(1);
+    return await withDatabaseRetry(async () => {
+      const newsletters = await db
+        .select()
+        .from(schema.newsletters)
+        .where(eq(schema.newsletters.id, id))
+        .limit(1);
 
-    if (newsletters.length === 0) {
-      return null;
-    }
+      if (newsletters.length === 0) {
+        return null;
+      }
 
-    const newsletter = newsletters[0];
-    const articles = await db
-      .select()
-      .from(schema.articles)
-      .where(eq(schema.articles.newsletterId, newsletter.id))
-      .orderBy(schema.articles.position);
+      const newsletter = newsletters[0];
+      const articles = await db
+        .select()
+        .from(schema.articles)
+        .where(eq(schema.articles.newsletterId, newsletter.id))
+        .orderBy(schema.articles.position);
 
-    return {
-      ...newsletter,
-      articles,
-    };
+      return {
+        ...newsletter,
+        articles,
+      };
+    });
   }
 
   /**

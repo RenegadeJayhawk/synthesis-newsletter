@@ -2,22 +2,26 @@
 
 export const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
   if (typeof window !== 'undefined') {
-    // Google Analytics 4
     if (window.gtag) {
-      window.gtag('event', eventName, properties);
+      window.gtag('event', eventName, properties ?? {});
     }
-    
-    // Custom analytics can be added here
-    console.log('Event tracked:', eventName, properties);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Event tracked:', eventName, properties);
+    }
   }
 };
 
 export const trackPageView = (url: string) => {
   if (typeof window !== 'undefined') {
-    // Google Analytics 4
+    const pathname = url || window.location.pathname;
+    const pageTitle = typeof document !== 'undefined' && document.title
+      ? document.title
+      : pathname.split('/').filter(Boolean).pop() || 'Home';
+
     if (window.gtag) {
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
-        page_location: url,
+      window.gtag('event', 'page_view', {
+        page_location: pathname,
+        page_title: pageTitle,
       });
     }
   }
@@ -69,6 +73,12 @@ export const trackArticleShare = (articleSlug: string, platform: string) => {
 
 export const trackNewsletterSignup = (source: string) => {
   trackEvent('newsletter_signup', {
+    source,
+  });
+};
+
+export const trackNewsletterCTA = (source: string) => {
+  trackEvent('newsletter_cta_click', {
     source,
   });
 };

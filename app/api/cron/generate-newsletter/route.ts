@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createNewsletter } from '@/lib/newsletterService';
 import { parseNewsletter } from '@/lib/newsletterParser';
 import { addImagesToArticles } from '@/lib/imageService';
-import { newsletterDb } from '@/lib/db/newsletterDbService';
+import { getDatabaseHealth, newsletterDb } from '@/lib/db/newsletterDbService';
 import { cronLogger } from '@/lib/cronLogger';
 import { notificationService } from '@/lib/notificationService';
 
@@ -35,6 +35,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    const dbHealth = getDatabaseHealth();
+    if (!dbHealth.ready) {
+      cronLogger.error('Cron generation aborted because Postgres is not configured', { health: dbHealth });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Newsletter persistence is not configured. Set POSTGRES_URL before running cron generation.',
+          health: dbHealth,
+        },
+        { status: 503 }
       );
     }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { applyRateLimit, createRequestId, requireBearerToken } from '@/lib/apiSecurity';
+import { getDatabaseHealth } from '@/lib/db/newsletterDbService';
 import { generateAndPersistNewsletter } from '@/lib/newsletterGeneration';
 
 export const runtime = 'nodejs';
@@ -27,6 +28,19 @@ export async function POST(request: Request) {
   const requestId = createRequestId();
 
   try {
+    const dbHealth = getDatabaseHealth();
+    if (!dbHealth.ready) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Newsletter persistence is not configured. Set POSTGRES_URL before generating a newsletter.',
+          requestId,
+          health: dbHealth,
+        },
+        { status: 503 }
+      );
+    }
+
     const completeNewsletter = await generateAndPersistNewsletter();
     
     return NextResponse.json({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { applyRateLimit, createRequestId, validateSecretValue } from '@/lib/apiSecurity';
+import { getDatabaseHealth } from '@/lib/db/newsletterDbService';
 import { generateAndPersistNewsletter } from '@/lib/newsletterGeneration';
 
 type AdminGenerateBody = {
@@ -41,6 +42,19 @@ export async function POST(request: Request) {
           requestId,
         },
         { status: 401 }
+      );
+    }
+
+    const dbHealth = getDatabaseHealth();
+    if (!dbHealth.ready) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Newsletter persistence is not configured. Set POSTGRES_URL before generating a newsletter.',
+          requestId,
+          health: dbHealth,
+        },
+        { status: 503 }
       );
     }
 

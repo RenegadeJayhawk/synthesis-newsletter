@@ -31,8 +31,11 @@ function getClientIp(request: Request): string {
 }
 
 function secureEquals(left: string, right: string): boolean {
-  const leftBuffer = Buffer.from(left);
-  const rightBuffer = Buffer.from(right);
+  const normalizedLeft = left.trim();
+  const normalizedRight = right.trim();
+
+  const leftBuffer = Buffer.from(normalizedLeft);
+  const rightBuffer = Buffer.from(normalizedRight);
 
   if (leftBuffer.length !== rightBuffer.length) {
     return false;
@@ -124,7 +127,10 @@ export function validateSecretValue(providedValue: string, envVarName: string): 
     return 'missing';
   }
 
-  if (!providedValue || !secureEquals(providedValue, expectedValue)) {
+  const normalizedProvidedValue = providedValue.trim();
+  const normalizedExpectedValue = expectedValue.trim();
+
+  if (!normalizedProvidedValue || !secureEquals(normalizedProvidedValue, normalizedExpectedValue)) {
     return 'invalid';
   }
 

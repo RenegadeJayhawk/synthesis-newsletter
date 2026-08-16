@@ -36,7 +36,8 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 | P2-1 | Implement **header search**                                | **Completed:** Full dynamic search querying database and mock articles, fixed Enter submit keydown navigation in header.            |
 | P2-2 | Wire **Subscribe** across header, footer, and CTA sections | **Completed:** Created `subscribers` DB table, POST `/api/subscribe` endpoint, and integrated unified AJAX `<SubscribeForm>` component across Footer, Homepage, Archive, and Article Sidebar. |
 | P2-3 | Harden **newsletter generation UX**                        | **Completed:** Refresh and admin generation now guard duplicate submits, preserve the current issue during refresh, and surface actionable empty-state and failure messaging. |
-| P2-4 | **Analytics: integrate or delete**                         | If keeping: load provider script, route page views, and track newsletter/signup conversion events.                                 |
+| P2-4 | **Analytics: integrate or delete**                         | **Completed:** Vercel analytics and route/signup tracking are in place and verified.                                            |
+| P2-5 | **Add real Google Analytics**                             | Add a proper GA4 property, measurement ID, consent-safe script injection, and event mapping for page views and newsletter signup conversions. |
 
 ---
 
@@ -54,8 +55,8 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 
 | ID   | Item                                                  | Notes                                                                                                                                                           |
 | ---- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P5-1 | Add durable **newsletter persistence and data hardening** | Replace in-memory fallback with persistent storage, add health checks/retry handling, and consider Redis/cache support. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `DATABASE_IMPLEMENTATION.md`, `DATABASE_TECHNICAL_OVERVIEW.md`. |
-| P5-2 | Add **generation protection and operational controls**   | Restrict newsletter/admin generation with auth, add API rate limiting, and harden cron behavior. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `DATABASE_TECHNICAL_OVERVIEW.md`, `AUTOMATED_GENERATION.md`. |
+| P5-1 | Add durable **newsletter persistence and data hardening** | **Completed:** persistence checks, retry logic, and health reporting are in place; generation fails fast when Postgres is unavailable instead of silently running in mock mode. |
+| P5-2 | Add **generation protection and operational controls**   | **Completed:** admin and cron generation paths enforce secret validation, database readiness checks, and guarded operational failures. |
 | P5-3 | Add **email delivery and notification channels**       | Send newsletters and operational alerts via email, Slack, or webhooks. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `AUTOMATED_GENERATION.md`, `DEPLOYMENT_SUCCESS.md`. |
 | P5-4 | Add **analytics and usage tracking**                   | Track views, engagement, and operational cost/usage signals. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `DEPLOYMENT_SUCCESS.md`, `DATABASE_TECHNICAL_OVERVIEW.md`. |
 | P5-5 | Add **discovery and content tooling**                  | Full-text search, category/date filters, bookmarking, trending/related articles, and social sharing. Sources: `DATABASE_IMPLEMENTATION.md`, `MSNOW_SUCCESS_FINAL.md`. |
@@ -67,13 +68,13 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 
 | ID   | Item                                             | Notes                                                                                                     |
 | ---- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| P4-1 | Relocate or remove **`app/page-animated-backup.tsx`** | Keep out of App Router tree if retained.                                                                   |
-| P4-2 | Fix **`PageWrapper` props typing**               | e.g. `children: ReactNode` on the interface.                                                               |
-| P4-3 | Add **`LICENSE`**                                | If repo is or will be shared/open.                                                                         |
-| P4-4 | Enable **Dependabot or Renovate**                | Scheduled dependency PRs.                                                                                  |
+| P4-1 | Relocate or remove **`app/page-animated-backup.tsx`** | **Completed:** no App Router backup file remains in the active tree, so there is nothing left to relocate or render. |
+| P4-2 | Fix **`PageWrapper` props typing**               | **Completed:** props are now explicitly typed with `ReactNode` and kept in a clean type alias.                 |
+| P4-3 | Add **`LICENSE`**                                | **Completed:** repository includes an MIT license.                                                          |
+| P4-4 | Enable **Dependabot or Renovate**                | **Completed:** dependency update automation is configured for npm and GitHub Actions.                        |
 | P4-5 | Add **smoke E2E**                                | Cover home, one article, newsletter, and one real top-level info page against a running Next server.      |
-| P4-6 | **CSP** (when adding third-party scripts)        | Tighten `next.config.js` headers after analytics/embeds exist.                                            |
-| P4-7 | Resolve **React 19 peer warnings**               | `react-spring` transitive peers still target React 18. Audit before upgrading UI/runtime dependencies further. |
+| P4-6 | **CSP** (when adding third-party scripts)        | **Completed:** production headers now enforce a CSP scoped to the app plus the required Vercel analytics endpoints. |
+| P4-7 | Resolve **React 19 peer warnings**               | **Completed:** the active dependency tree has no `react-spring` entry and is compatible with React 19; no remaining peer-warning source is present in the project. |
 
 ---
 

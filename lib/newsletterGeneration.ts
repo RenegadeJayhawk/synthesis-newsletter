@@ -4,6 +4,14 @@ import { parseNewsletter } from '@/lib/newsletterParser';
 import { addImagesToArticles } from '@/lib/imageService';
 
 export async function generateAndPersistNewsletter() {
+  const persistenceReady = typeof newsletterDb.isPersistenceReady === 'function'
+    ? newsletterDb.isPersistenceReady()
+    : Boolean(process.env.POSTGRES_URL && process.env.POSTGRES_URL.trim());
+
+  if (!persistenceReady) {
+    throw new Error('Newsletter persistence is not configured. Set POSTGRES_URL to enable durable database storage.');
+  }
+
   const newsletter = await createNewsletter();
   const parsedNewsletter = parseNewsletter(newsletter);
   const articlesWithImages = await addImagesToArticles(parsedNewsletter.articles);

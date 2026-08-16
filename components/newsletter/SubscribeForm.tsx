@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
+import { trackNewsletterSignup } from '@/lib/analytics'
 
 interface SubscribeFormProps {
   variant?: 'footer' | 'inline' | 'sidebar'
@@ -39,6 +40,7 @@ export default function SubscribeForm({
       const data = (await response.json()) as { success: boolean; message?: string; error?: string }
 
       if (data.success) {
+        trackNewsletterSignup(variant === 'footer' ? 'footer_form' : variant === 'sidebar' ? 'sidebar_form' : 'homepage_inline')
         setMessage(data.message || 'Thank you for subscribing!')
         setEmail('')
       } else {

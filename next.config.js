@@ -27,16 +27,38 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+
+  // Required in Next.js 16 when custom webpack config is present.
+  // This keeps the app compatible with the default Turbopack runtime.
+  turbopack: {},
   
   // Compress responses
   compress: true,
   
   // Security headers
   async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://*.vercel-insights.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://images.unsplash.com https://via.placeholder.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://vitals.vercel-insights.com https://*.vercel-insights.com",
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+    ].join('; ');
+
     return [
       {
         source: '/(.*)',
         headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: csp,
+          },
           {
             key: 'X-Frame-Options',
             value: 'DENY',

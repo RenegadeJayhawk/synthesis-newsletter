@@ -20,6 +20,14 @@ const routeMocks = vi.hoisted(() => ({
   },
   newsletterDb: {
     createNewsletter: vi.fn(),
+    isPersistenceReady: vi.fn(() => true),
+  },
+  databaseHealth: {
+    mode: 'postgres',
+    ready: true,
+    fallback: 'postgres',
+    configured: true,
+    checkedAt: new Date().toISOString(),
   },
   cronLogger: {
     info: vi.fn(),
@@ -37,7 +45,10 @@ vi.mock('@/lib/newsletterGeneration', () => routeMocks.newsletterGeneration);
 vi.mock('@/lib/newsletterParser', () => routeMocks.newsletterParser);
 vi.mock('@/lib/imageService', () => routeMocks.imageService);
 vi.mock('@/lib/newsletterService', () => routeMocks.newsletterService);
-vi.mock('@/lib/db/newsletterDbService', () => ({ newsletterDb: routeMocks.newsletterDb }));
+vi.mock('@/lib/db/newsletterDbService', () => ({
+  newsletterDb: routeMocks.newsletterDb,
+  getDatabaseHealth: vi.fn(() => routeMocks.databaseHealth),
+}));
 vi.mock('@/lib/cronLogger', () => ({ cronLogger: routeMocks.cronLogger }));
 vi.mock('@/lib/notificationService', () => ({ notificationService: routeMocks.notificationService }));
 

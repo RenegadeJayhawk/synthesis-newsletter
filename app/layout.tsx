@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from '@vercel/analytics/next';
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { defaultMetadata } from "@/lib/metadata";
+import { ClientAnalytics } from '@/components/analytics/ClientAnalytics';
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -26,8 +28,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <ClientAnalytics />
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

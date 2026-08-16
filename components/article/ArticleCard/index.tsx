@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Clock, Calendar } from 'lucide-react'
 import { Article } from '@/lib/data'
+import { getCategoryColorClasses } from '@/lib/categoryStyles'
 
 // ExtendedArticle extends the default static Article interface to support dynamic articles
 // fetched from the database, which link back to their originating newsletter archive via sourceUrl.
@@ -36,8 +37,8 @@ export default function ArticleCard({ article }: ArticleCardProps) {
             </div>
           )}
           <CardHeader className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Badge variant="secondary">
+            <div className="flex items-center justify-between gap-2">
+              <Badge className={getCategoryColorClasses(article.category)} variant="secondary">
                 {article.category}
               </Badge>
               {article.featured && (

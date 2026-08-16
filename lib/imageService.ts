@@ -33,8 +33,7 @@ export async function getArticleImage(
     return generatedImage;
   } catch (error) {
     console.error('Error getting article image:', error);
-    // Return placeholder on error
-    return getPlaceholderImage(category);
+    return getFallbackImage(category);
   }
 }
 
@@ -45,10 +44,8 @@ async function searchUnsplashImage(
   title: string,
   category?: string
 ): Promise<string | null> {
-  // Check if Unsplash API key is available
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!accessKey) {
-    console.log('Unsplash API key not configured, skipping image search');
     return null;
   }
 
@@ -74,8 +71,8 @@ async function searchUnsplashImage(
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      // Return the first result's regular-sized image
-      return data.results[0].urls.regular;
+      const imageUrl = data.results[0]?.urls?.regular;
+      return typeof imageUrl === 'string' && imageUrl.length > 0 ? imageUrl : null;
     }
 
     return null;
@@ -114,8 +111,7 @@ async function generateArticleImage(
     return data.imageUrl;
   } catch (error) {
     console.error('Error generating image:', error);
-    // Return category-specific placeholder
-    return getPlaceholderImage(category);
+    return getFallbackImage(category);
   }
 }
 
@@ -208,9 +204,8 @@ function getCategoryImageStyle(category?: string): string {
 /**
  * Get placeholder image based on category
  */
-function getPlaceholderImage(category?: string): string {
-  // Map categories to placeholder images
-  const placeholderMap: Record<string, string> = {
+function getFallbackImage(category?: string): string {
+  const fallbackMap: Record<string, string> = {
     'Major Breakthroughs & Research': '/images/placeholders/research.jpg',
     'New Applications & Use Cases': '/images/placeholders/applications.jpg',
     'Industry News & Market Trends': '/images/placeholders/industry.jpg',
@@ -220,7 +215,7 @@ function getPlaceholderImage(category?: string): string {
     'Tools & Resources': '/images/placeholders/tools.jpg',
   };
 
-  return (category && placeholderMap[category]) || '/images/placeholders/default.jpg';
+  return (category && fallbackMap[category]) || '/images/placeholders/default.jpg';
 }
 
 /**

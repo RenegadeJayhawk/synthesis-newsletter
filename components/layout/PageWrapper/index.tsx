@@ -1,10 +1,10 @@
 'use client'
 
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import Header from '../Header'
 import Footer from '../Footer'
 
-interface PageWrapperProps {
+type PageWrapperProps = {
   children: ReactNode
 }
 
