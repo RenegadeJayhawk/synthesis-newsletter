@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import Footer from '@/components/layout/Footer';
-import PageWrapper from '@/components/layout/PageWrapper';
 import ContactForm from '@/app/contact/ContactForm';
 import SubscribeForm from '@/components/newsletter/SubscribeForm';
 

@@ -21,6 +21,13 @@ export async function GET(request: Request) {
 
   const requestId = createRequestId();
 
+  if (!newsletterDb.isPersistenceReady()) {
+    return NextResponse.json(
+      { success: false, error: 'Newsletter storage is temporarily unavailable.', requestId },
+      { status: 503 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const requestedLimit = Number.parseInt(searchParams.get('limit') || '50', 10);

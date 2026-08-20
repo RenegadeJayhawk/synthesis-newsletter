@@ -8,24 +8,33 @@ interface NewsletterArticleItemProps {
   article: NewsletterArticle;
 }
 
+function getSafeArticleLink(value?: string): { href: string; isExternal: boolean } | null {
+  if (!value) return null;
+
+  if (value.startsWith('/')) {
+    return { href: value, isExternal: false };
+  }
+
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'https:' || url.protocol === 'http:') {
+      return { href: url.toString(), isExternal: true };
+    }
+  } catch {
+    // An invalid untrusted URL is rendered as plain article content instead of a link.
+  }
+
+  return null;
+}
+
 export default function NewsletterArticleItem({ article }: NewsletterArticleItemProps) {
-  const {
-    title,
-    summary,
-    author,
-    category,
-    imageUrl,
-    sourceUrl,
-  } = article;
+  const { title, summary, author, category, imageUrl, sourceUrl } = article;
+  const displayImage = imageUrl || '/og-image.png';
+  const articleLink = getSafeArticleLink(sourceUrl);
 
-  // Placeholder image if none provided
-  const displayImage = imageUrl || '/images/placeholder-article.jpg';
-
-  const ArticleContent = () => (
+  const articleContent = (
     <>
-      {/* Text Content */}
       <div className="flex-1 min-w-0">
-        {/* Category Badge */}
         {category && (
           <div className="mb-2">
             <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
@@ -34,31 +43,28 @@ export default function NewsletterArticleItem({ article }: NewsletterArticleItem
           </div>
         )}
 
-        {/* Title */}
         <h3 className="text-xl md:text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
           {title}
         </h3>
 
-        {/* Summary */}
         <p className="text-base text-gray-600 dark:text-gray-400 mb-3 leading-relaxed line-clamp-3">
           {summary}
         </p>
 
-        {/* Author/Metadata */}
         {author && (
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
             <span className="font-medium">{author}</span>
-            {sourceUrl && (
+            {articleLink?.isExternal && (
               <>
-                <span className="text-gray-400">•</span>
-                <ExternalLink className="h-3 w-3" />
+                <span className="text-gray-400" aria-hidden="true">•</span>
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                <span className="sr-only">Opens in a new tab</span>
               </>
             )}
           </div>
         )}
       </div>
 
-      {/* Thumbnail Image */}
       <div className="flex-shrink-0 w-full sm:w-48 md:w-56 lg:w-64 h-40 sm:h-32 md:h-36 relative overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-700">
         <Image
           src={displayImage}
@@ -71,26 +77,24 @@ export default function NewsletterArticleItem({ article }: NewsletterArticleItem
     </>
   );
 
-  // Wrap in link if sourceUrl provided
-  if (sourceUrl) {
+  if (articleLink) {
     return (
       <article className="group">
         <a
-          href={sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={articleLink.href}
+          target={articleLink.isExternal ? '_blank' : undefined}
+          rel={articleLink.isExternal ? 'noopener noreferrer' : undefined}
           className="flex flex-col sm:flex-row gap-4 sm:gap-6 py-6 hover:bg-gray-50 dark:hover:bg-slate-800/50 -mx-4 px-4 rounded-lg transition-colors"
         >
-          <ArticleContent />
+          {articleContent}
         </a>
       </article>
     );
   }
 
-  // No link, just display
   return (
     <article className="group flex flex-col sm:flex-row gap-4 sm:gap-6 py-6">
-      <ArticleContent />
+      {articleContent}
     </article>
   );
 }

@@ -8,7 +8,9 @@ const connectionString = process.env.POSTGRES_URL?.trim();
 // When no URL is present, the app keeps its existing in-memory/mock behavior.
 export const db = connectionString
   ? drizzle(neon(connectionString), { schema })
-  : null as any;
+  // NewsletterDbService never dereferences this branch: it uses its local mock
+  // whenever POSTGRES_URL is absent. `never` avoids an untyped database surface.
+  : null as never;
 
 // Export schema for use in queries
 export { schema };

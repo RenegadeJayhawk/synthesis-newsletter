@@ -9,6 +9,7 @@ import { GET as categoryGET } from './category/[slug]/route';
 
 const routeMocks = vi.hoisted(() => ({
   newsletterDb: {
+    isPersistenceReady: vi.fn(() => true),
     addSubscriber: vi.fn(),
     searchArticles: vi.fn(),
     getLatestNewsletter: vi.fn(),
@@ -67,6 +68,7 @@ function getRequest(url: string, ip = '203.0.113.10'): Request {
 beforeEach(() => {
   vi.resetAllMocks();
   vi.unstubAllEnvs();
+  routeMocks.newsletterDb.isPersistenceReady.mockReturnValue(true);
 });
 
 describe('public API routes', () => {
@@ -209,6 +211,17 @@ describe('public API routes', () => {
   });
 
   describe('newsletter latest route', () => {
+    it('returns 503 when durable storage is unavailable', async () => {
+      routeMocks.newsletterDb.isPersistenceReady.mockReturnValue(false);
+
+      const response = await latestGET(getRequest('http://localhost/api/newsletter/latest', '203.0.113.18'));
+      const body = (await response.json()) as { success: boolean; error: string };
+
+      expect(response.status).toBe(503);
+      expect(body.error).toBe('Newsletter storage is temporarily unavailable.');
+      expect(routeMocks.newsletterDb.getLatestNewsletter).not.toHaveBeenCalled();
+    });
+
     it('returns 404 when no newsletter exists', async () => {
       routeMocks.newsletterDb.getLatestNewsletter.mockResolvedValue(null);
 

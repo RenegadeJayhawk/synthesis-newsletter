@@ -39,7 +39,7 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://*.vercel-insights.com",
+      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://*.vercel-insights.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://images.unsplash.com https://via.placeholder.com",
       "font-src 'self' data:",
@@ -48,6 +48,7 @@ const nextConfig = {
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      "script-src-attr 'none'",
       "upgrade-insecure-requests",
     ].join('; ');
 
@@ -58,6 +59,14 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: csp,
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), geolocation=(), microphone=(), payment=(), browsing-topics=()',
           },
           {
             key: 'X-Frame-Options',

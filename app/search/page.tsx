@@ -49,7 +49,8 @@ function SearchPageContent() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    setSearchQuery(initialQuery)
+    const updateQuery = window.setTimeout(() => setSearchQuery(initialQuery), 0)
+    return () => window.clearTimeout(updateQuery)
   }, [initialQuery])
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -89,7 +90,7 @@ function SearchPageContent() {
                   }),
               readTime: calculatedReadTime,
               tags: art.tags || [art.category || 'AI'],
-              image: art.imageUrl || '/images/placeholders/default.jpg',
+              image: art.imageUrl || '/og-image.png',
               sourceUrl: art.sourceUrl, // Links directly back to originating newsletter
             }
           })

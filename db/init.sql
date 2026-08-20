@@ -35,10 +35,19 @@ CREATE TABLE IF NOT EXISTS articles (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- Create subscribers table
+CREATE TABLE IF NOT EXISTS subscribers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  unsubscribed_at TIMESTAMP
+);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_articles_newsletter_id ON articles(newsletter_id);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category);
 CREATE INDEX IF NOT EXISTS idx_newsletters_generated_at ON newsletters(generated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_subscribers_active ON subscribers(created_at DESC) WHERE unsubscribed_at IS NULL;
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

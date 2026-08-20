@@ -245,12 +245,12 @@ describe('protected API routes', () => {
   });
 
   describe('cron newsletter generation route', () => {
-    it('returns 500 when the cron secret is not configured', async () => {
+    it('returns 503 when the cron secret is not configured', async () => {
       const response = await cronGET(getRequest('http://localhost/api/cron/generate-newsletter'));
       const body = (await response.json()) as { success: boolean; error: string };
 
-      expect(response.status).toBe(500);
-      expect(body.error).toBe('Server configuration error');
+      expect(response.status).toBe(503);
+      expect(body.error).toBe('Service unavailable.');
       expect(routeMocks.notificationService.sendError).not.toHaveBeenCalled();
     });
 
@@ -263,7 +263,7 @@ describe('protected API routes', () => {
       const body = (await response.json()) as { success: boolean; error: string };
 
       expect(response.status).toBe(401);
-      expect(body.error).toBe('Unauthorized');
+      expect(body.error).toBe('Unauthorized.');
     });
 
     it('generates, stores, and reports a newsletter when authorized', async () => {
@@ -309,7 +309,6 @@ describe('protected API routes', () => {
         success: boolean;
         newsletter: { id: string; articleCount: number };
         duration: string;
-        logs: string[];
       };
 
       expect(response.status).toBe(200);
@@ -320,7 +319,7 @@ describe('protected API routes', () => {
       expect(body.newsletter.id).toBe('saved-newsletter-1');
       expect(body.newsletter.articleCount).toBe(1);
       expect(body.duration).toMatch(/^\d+ms$/);
-      expect(body.logs).toEqual(['log-1', 'log-2']);
+      expect(body).not.toHaveProperty('logs');
     });
   });
 });

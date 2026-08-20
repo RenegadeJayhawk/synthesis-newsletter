@@ -21,6 +21,13 @@ export async function GET(request: Request) {
 
   const requestId = createRequestId();
 
+  if (!newsletterDb.isPersistenceReady()) {
+    return NextResponse.json(
+      { success: false, error: 'Newsletter storage is temporarily unavailable.', requestId },
+      { status: 503 }
+    );
+  }
+
   try {
     const newsletter = await newsletterDb.getLatestNewsletter();
     

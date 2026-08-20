@@ -21,10 +21,6 @@ export default function ArchivePage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchNewsletters();
-  }, []);
-
   const fetchNewsletters = async () => {
     try {
       setLoading(true);
@@ -43,6 +39,14 @@ export default function ArchivePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadNewsletters = window.setTimeout(() => {
+      void fetchNewsletters();
+    }, 0);
+
+    return () => window.clearTimeout(loadNewsletters);
+  }, []);
 
   const filteredNewsletters = newsletters.filter((newsletter) => {
     if (!searchQuery) return true;

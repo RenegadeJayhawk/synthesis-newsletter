@@ -8,13 +8,13 @@ import { NewsletterArticle } from '@/types/newsletter';
 /**
  * Get or generate an image for an article
  * 1. Try to search for relevant image from Unsplash
- * 2. If no suitable image found, generate using AI
+ * 2. Fall back to a committed site image when no approved external image is available
  * 3. Cache the result in the article object
  */
 export async function getArticleImage(
   article: NewsletterArticle
 ): Promise<string> {
-  const { title, summary, category, imageUrl } = article;
+  const { title, category, imageUrl } = article;
 
   // Return existing image if already set
   if (imageUrl) {
@@ -28,12 +28,12 @@ export async function getArticleImage(
       return searchImage;
     }
 
-    // Fallback: Generate AI image
-    const generatedImage = await generateArticleImage(title, summary, category);
-    return generatedImage;
+    // Keep server-side generation deterministic: the former relative /api/generate-image
+    // call could not resolve from a server route and pointed at no implemented endpoint.
+    return getFallbackImage();
   } catch (error) {
     console.error('Error getting article image:', error);
-    return getFallbackImage(category);
+    return getFallbackImage();
   }
 }
 
@@ -79,39 +79,6 @@ async function searchUnsplashImage(
   } catch (error) {
     console.error('Error searching Unsplash:', error);
     return null;
-  }
-}
-
-/**
- * Generate an AI image for the article
- */
-async function generateArticleImage(
-  title: string,
-  summary: string,
-  category?: string
-): Promise<string> {
-  // Build a descriptive prompt for image generation
-  const prompt = buildImagePrompt(title, summary, category);
-
-  try {
-    // Call image generation API
-    const response = await fetch('/api/generate-image', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Image generation failed');
-    }
-
-    const data = await response.json();
-    return data.imageUrl;
-  } catch (error) {
-    console.error('Error generating image:', error);
-    return getFallbackImage(category);
   }
 }
 
@@ -170,52 +137,14 @@ function getCategorySearchTerms(category?: string): string[] {
   return categoryMap[category] || ['artificial intelligence', 'technology'];
 }
 
-/**
- * Build image generation prompt
- */
-function buildImagePrompt(
-  title: string,
-  summary: string,
-  category?: string
-): string {
-  const keywords = extractKeywords(title);
-  const categoryStyle = getCategoryImageStyle(category);
 
-  return `${categoryStyle}, ${keywords.join(', ')}, professional, high-quality, modern, clean composition, 16:9 aspect ratio`;
-}
-
-/**
- * Get image style based on category
- */
-function getCategoryImageStyle(category?: string): string {
-  const styleMap: Record<string, string> = {
-    'Major Breakthroughs & Research': 'scientific laboratory, researchers, advanced technology',
-    'New Applications & Use Cases': 'modern technology in use, practical application, real-world setting',
-    'Industry News & Market Trends': 'corporate office, business meeting, professional environment',
-    'Ethical Considerations & Societal Impact': 'diverse group of people, community, social interaction',
-    'Open Source Developments': 'computer code, developer workspace, open collaboration',
-    'Emerging Trends & Future Outlook': 'futuristic technology, innovation concept, forward-thinking',
-    'Tools & Resources': 'software interface, digital tools, technology workspace',
-  };
-
-  return (category && styleMap[category]) || 'artificial intelligence concept, modern technology';
-}
 
 /**
  * Get placeholder image based on category
  */
-function getFallbackImage(category?: string): string {
-  const fallbackMap: Record<string, string> = {
-    'Major Breakthroughs & Research': '/images/placeholders/research.jpg',
-    'New Applications & Use Cases': '/images/placeholders/applications.jpg',
-    'Industry News & Market Trends': '/images/placeholders/industry.jpg',
-    'Ethical Considerations & Societal Impact': '/images/placeholders/ethics.jpg',
-    'Open Source Developments': '/images/placeholders/opensource.jpg',
-    'Emerging Trends & Future Outlook': '/images/placeholders/future.jpg',
-    'Tools & Resources': '/images/placeholders/tools.jpg',
-  };
-
-  return (category && fallbackMap[category]) || '/images/placeholders/default.jpg';
+function getFallbackImage(): string {
+  // Generated during postinstall and committed for use in every deployment.
+  return '/og-image.png';
 }
 
 /**

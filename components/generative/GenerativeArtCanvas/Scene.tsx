@@ -1,14 +1,36 @@
 'use client';
 
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Mesh, Vector3 } from 'three';
 
-// Animated floating particles
-const FloatingParticle: React.FC<{ position: Vector3; color: string; size: number }> = ({ 
-  position, 
-  color, 
-  size 
+const seededValue = (seed: number) => {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+};
+
+const particles = Array.from({ length: 20 }, (_, index) => ({
+  position: new Vector3(
+    (seededValue(index * 5 + 1) - 0.5) * 10,
+    (seededValue(index * 5 + 2) - 0.5) * 6,
+    (seededValue(index * 5 + 3) - 0.5) * 4
+  ),
+  color: seededValue(index * 5 + 4) > 0.5 ? '#3b82f6' : '#8b5cf6',
+  size: seededValue(index * 5 + 5) * 0.1 + 0.05,
+}));
+
+const geometries = Array.from({ length: 5 }, (_, index) => ({
+  position: new Vector3(
+    (seededValue(index * 3 + 101) - 0.5) * 8,
+    (seededValue(index * 3 + 102) - 0.5) * 4,
+    (seededValue(index * 3 + 103) - 0.5) * 3
+  ),
+}));
+
+const FloatingParticle: React.FC<{ position: Vector3; color: string; size: number }> = ({
+  position,
+  color,
+  size,
 }) => {
   const meshRef = useRef<Mesh>(null);
   const initialY = position.y;
@@ -29,7 +51,6 @@ const FloatingParticle: React.FC<{ position: Vector3; color: string; size: numbe
   );
 };
 
-// Animated geometric shape
 const AnimatedGeometry: React.FC<{ position: Vector3 }> = ({ position }) => {
   const meshRef = useRef<Mesh>(null);
 
@@ -44,72 +65,27 @@ const AnimatedGeometry: React.FC<{ position: Vector3 }> = ({ position }) => {
   return (
     <mesh ref={meshRef} position={position}>
       <octahedronGeometry args={[0.8, 0]} />
-      <meshBasicMaterial 
-        color="#3b82f6" 
-        transparent 
-        opacity={0.3}
-        wireframe
-      />
+      <meshBasicMaterial color="#3b82f6" transparent opacity={0.3} wireframe />
     </mesh>
   );
 };
 
-export const Scene: React.FC = () => {
-  // Generate random particles
-  const particles = useMemo(() => {
-    const particleArray = [];
-    for (let i = 0; i < 20; i++) {
-      particleArray.push({
-        position: new Vector3(
-          (Math.random() - 0.5) * 10,
-          (Math.random() - 0.5) * 6,
-          (Math.random() - 0.5) * 4
-        ),
-        color: Math.random() > 0.5 ? '#3b82f6' : '#8b5cf6',
-        size: Math.random() * 0.1 + 0.05
-      });
-    }
-    return particleArray;
-  }, []);
+export const Scene: React.FC = () => (
+  <>
+    <ambientLight intensity={0.5} />
+    <pointLight position={[10, 10, 10]} intensity={0.5} />
 
-  // Generate geometric shapes
-  const geometries = useMemo(() => {
-    const geoArray = [];
-    for (let i = 0; i < 5; i++) {
-      geoArray.push({
-        position: new Vector3(
-          (Math.random() - 0.5) * 8,
-          (Math.random() - 0.5) * 4,
-          (Math.random() - 0.5) * 3
-        )
-      });
-    }
-    return geoArray;
-  }, []);
+    {particles.map((particle, index) => (
+      <FloatingParticle
+        key={index}
+        position={particle.position}
+        color={particle.color}
+        size={particle.size}
+      />
+    ))}
 
-  return (
-    <>
-      {/* Ambient lighting */}
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={0.5} />
-
-      {/* Floating particles */}
-      {particles.map((particle, index) => (
-        <FloatingParticle
-          key={index}
-          position={particle.position}
-          color={particle.color}
-          size={particle.size}
-        />
-      ))}
-
-      {/* Animated geometric shapes */}
-      {geometries.map((geo, index) => (
-        <AnimatedGeometry
-          key={index}
-          position={geo.position}
-        />
-      ))}
-    </>
-  );
-};
+    {geometries.map((geometry, index) => (
+      <AnimatedGeometry key={index} position={geometry.position} />
+    ))}
+  </>
+);

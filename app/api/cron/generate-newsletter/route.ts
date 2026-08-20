@@ -5,6 +5,7 @@ import { addImagesToArticles } from '@/lib/imageService';
 import { getDatabaseHealth, newsletterDb } from '@/lib/db/newsletterDbService';
 import { cronLogger } from '@/lib/cronLogger';
 import { notificationService } from '@/lib/notificationService';
+import { requireBearerToken } from '@/lib/apiSecurity';
 
 /**
  * Vercel Cron endpoint for automated newsletter generation
@@ -16,26 +17,11 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    // Verify the request is from Vercel Cron
-    const authHeader = request.headers.get('authorization');
-    const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
-    
-    if (!process.env.CRON_SECRET) {
-      cronLogger.error('CRON_SECRET environment variable not set');
-      return NextResponse.json(
-        { success: false, error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== expectedAuth) {
-      cronLogger.error('Unauthorized cron request attempt', {
-        authHeader: authHeader ? 'present' : 'missing',
-      });
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Vercel Cron sends the configured CRON_SECRET as a bearer token.
+    const authorizationError = requireBearerToken(request, 'CRON_SECRET');
+    if (authorizationError) {
+      cronLogger.error('Unauthorized cron request attempt');
+      return authorizationError;
     }
 
     const dbHealth = getDatabaseHealth();
@@ -124,7 +110,6 @@ export async function GET(request: NextRequest) {
         generatedAt: savedNewsletter.generatedAt,
       },
       duration: `${duration}ms`,
-      logs: cronLogger.getRecentLogs(5),
     });
 
   } catch (error) {
@@ -153,9 +138,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Failed to generate newsletter',
-        message: errorMessage,
         duration: `${duration}ms`,
-        logs: cronLogger.getRecentLogs(10),
       },
       { status: 500 }
     );

@@ -41,10 +41,36 @@ export default function CategoryArchivePage() {
   }, [slug]);
 
   useEffect(() => {
-    if (slug) {
-      void fetchCategoryArticles();
-    }
-  }, [slug, fetchCategoryArticles]);
+    if (!slug) return;
+
+    const controller = new AbortController();
+    const loadCategory = async () => {
+      try {
+        const response = await fetch(`/api/category/${slug}`, { signal: controller.signal });
+        const data = await response.json();
+
+        if (data.success) {
+          setArticles(data.articles);
+          setCategoryName(data.category);
+          setError(null);
+        } else {
+          setError(data.error || 'Failed to load category articles');
+        }
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          setError('Failed to fetch category articles');
+          console.error(err);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadCategory();
+    return () => controller.abort();
+  }, [slug]);
 
   return (
     <PageWrapper>

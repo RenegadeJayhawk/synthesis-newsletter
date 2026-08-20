@@ -21,12 +21,6 @@ export default function NewsletterDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchNewsletter(params.id as string);
-    }
-  }, [params.id]);
-
   const fetchNewsletter = async (id: string) => {
     try {
       setLoading(true);
@@ -45,6 +39,17 @@ export default function NewsletterDetailPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!params.id) return;
+
+    const newsletterId = params.id as string;
+    const loadNewsletter = window.setTimeout(() => {
+      void fetchNewsletter(newsletterId);
+    }, 0);
+
+    return () => window.clearTimeout(loadNewsletter);
+  }, [params.id]);
 
   if (loading) {
     return (
