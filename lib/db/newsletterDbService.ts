@@ -1,5 +1,5 @@
 import { db, schema } from '@/db';
-import { eq, desc, inArray, or, ilike } from 'drizzle-orm';
+import { eq, desc, inArray, or, ilike, sql } from 'drizzle-orm';
 import type { Newsletter, NewNewsletter, Article, NewArticle, Subscriber } from '@/db/schema/newsletters';
 import type { ParsedNewsletter } from '@/types/newsletter';
 
@@ -8,6 +8,14 @@ export type DatabaseHealthState = {
   ready: boolean;
   fallback: 'postgres' | 'in-memory';
   configured: boolean;
+  checkedAt: string;
+};
+
+export type PersistenceProbe = {
+  configured: boolean;
+  reachable: boolean;
+  schemaReady: boolean;
+  ready: boolean;
   checkedAt: string;
 };
 
@@ -75,6 +83,52 @@ export class NewsletterDbService {
 
   isPersistenceReady(): boolean {
     return Boolean(process.env.POSTGRES_URL && process.env.POSTGRES_URL.trim());
+  }
+
+  /**
+   * Probe the production persistence dependency without exposing a database URL,
+   * raw driver error, table contents, or any other sensitive detail.
+   */
+  async probePersistence(): Promise<PersistenceProbe> {
+    const checkedAt = new Date().toISOString();
+
+    if (!this.isPersistenceReady()) {
+      return {
+        configured: false,
+        reachable: false,
+        schemaReady: false,
+        ready: false,
+        checkedAt,
+      };
+    }
+
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          to_regclass('public.newsletters') AS newsletters,
+          to_regclass('public.articles') AS articles,
+          to_regclass('public.subscribers') AS subscribers
+      `);
+      const row = result.rows[0] as Record<string, string | null> | undefined;
+      const schemaReady = Boolean(row?.newsletters && row?.articles && row?.subscribers);
+
+      return {
+        configured: true,
+        reachable: true,
+        schemaReady,
+        ready: schemaReady,
+        checkedAt,
+      };
+    } catch (error) {
+      console.error('[Database] Storage readiness probe failed:', error);
+      return {
+        configured: true,
+        reachable: false,
+        schemaReady: false,
+        ready: false,
+        checkedAt,
+      };
+    }
   }
 
   constructor() {

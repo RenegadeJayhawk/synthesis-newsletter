@@ -6,10 +6,12 @@ import { GET as latestGET } from './newsletter/latest/route';
 import { GET as listGET } from './newsletter/list/route';
 import { GET as newsletterIdGET } from './newsletter/[id]/route';
 import { GET as categoryGET } from './category/[slug]/route';
+import { GET as storageHealthGET } from './health/storage/route';
 
 const routeMocks = vi.hoisted(() => ({
   newsletterDb: {
     isPersistenceReady: vi.fn(() => true),
+    probePersistence: vi.fn(),
     addSubscriber: vi.fn(),
     searchArticles: vi.fn(),
     getLatestNewsletter: vi.fn(),
@@ -69,6 +71,13 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.unstubAllEnvs();
   routeMocks.newsletterDb.isPersistenceReady.mockReturnValue(true);
+  routeMocks.newsletterDb.probePersistence.mockResolvedValue({
+    configured: true,
+    reachable: true,
+    schemaReady: true,
+    ready: true,
+    checkedAt: '2026-08-20T00:00:00.000Z',
+  });
 });
 
 describe('public API routes', () => {
@@ -207,6 +216,59 @@ describe('public API routes', () => {
         author: 'The Synthesis Editorial',
         sourceUrl: '/archive/newsletter-1',
       });
+    });
+  });
+
+  describe('storage health route', () => {
+    it('returns a safe ready status without database diagnostics', async () => {
+      const response = await storageHealthGET(getRequest('http://localhost/api/health/storage', '203.0.113.50'));
+      const body = (await response.json()) as {
+        success: boolean;
+        component: string;
+        storage: { configured: boolean; reachable: boolean; schemaReady: boolean; ready: boolean };
+        requestId: string;
+      };
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('cache-control')).toContain('no-store');
+      expect(body).toMatchObject({
+        success: true,
+        component: 'newsletter-storage',
+        storage: {
+          configured: true,
+          reachable: true,
+          schemaReady: true,
+          ready: true,
+        },
+      });
+      expect(body.requestId).toMatch(/^[0-9a-f-]{36}$/i);
+    });
+
+    it('returns 503 for an unavailable storage dependency without raw error details', async () => {
+      routeMocks.newsletterDb.probePersistence.mockResolvedValue({
+        configured: true,
+        reachable: false,
+        schemaReady: false,
+        ready: false,
+        checkedAt: '2026-08-20T00:00:00.000Z',
+      });
+
+      const response = await storageHealthGET(getRequest('http://localhost/api/health/storage', '203.0.113.51'));
+      const body = (await response.json()) as {
+        success: boolean;
+        storage: { configured: boolean; reachable: boolean; schemaReady: boolean; ready: boolean };
+      };
+
+      expect(response.status).toBe(503);
+      expect(body).toEqual(expect.objectContaining({
+        success: false,
+        storage: expect.objectContaining({
+          configured: true,
+          reachable: false,
+          schemaReady: false,
+          ready: false,
+        }),
+      }));
     });
   });
 
