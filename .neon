@@ -1,7 +1,5 @@
 {
-  "_init": {
-    "features": [
-      "database"
-    ]
-  }
+  "orgId": "org-curly-meadow-60447382",
+  "projectId": "still-star-77930508",
+  "branch": "production"
 }
