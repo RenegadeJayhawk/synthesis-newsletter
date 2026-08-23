@@ -61,7 +61,7 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 | P5-4 | Add **analytics and usage tracking**                   | Track views, engagement, and operational cost/usage signals. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `DEPLOYMENT_SUCCESS.md`, `DATABASE_TECHNICAL_OVERVIEW.md`. |
 | P5-5 | Add **discovery and content tooling**                  | Full-text search, category/date filters, bookmarking, trending/related articles, and social sharing. Sources: `DATABASE_IMPLEMENTATION.md`, `MSNOW_SUCCESS_FINAL.md`. |
 | P5-6 | Improve **image pipeline and visual polish**           | Unsplash integration, AI image generation, image caching, and category color treatments. Source: `MSNOW_SUCCESS_FINAL.md`.                                    |
-| P5-7 | Revisit **Neon Postgres migration**                   | **In progress / deferred:** the app was partially migrated to Neon but the migration is not fully validated, the CLI setup is incomplete, and the DB flow still has follow-up work before it should be considered done. Requires finalizing Neon setup, schema validation, and deploy verification. |
+| P5-7 | Revisit **Neon Postgres migration**                   | **Completed (pending deploy verification):** Neon project linked via CLI (`.neon` -> project `still-star-77930508`, `production` branch), Drizzle schema pushed and all three tables verified via direct query, pooled `POSTGRES_URL` wired into local env, and lint/tsc/build/smoke-E2E gates green. Remaining: set `POSTGRES_URL` in Vercel env vars, redeploy, and confirm `/api/newsletter/latest` plus cron generation run against Neon. |
 
 ---
 
