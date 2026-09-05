@@ -57,7 +57,7 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 | ---- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | P5-1 | Add durable **newsletter persistence and data hardening** | **Completed:** persistence checks, retry logic, and health reporting are in place; generation fails fast when Postgres is unavailable instead of silently running in mock mode. |
 | P5-2 | Add **generation protection and operational controls**   | **Completed:** admin and cron generation paths enforce secret validation, database readiness checks, and guarded operational failures. |
-| P5-3 | Add **email delivery and notification channels**       | Send newsletters and operational alerts via email, Slack, or webhooks. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `AUTOMATED_GENERATION.md`, `DEPLOYMENT_SUCCESS.md`. |
+| P5-3 | Add **email delivery and notification channels**       | **Completed:** notification service now supports email (Resend HTTP API), Slack webhooks, and generic webhooks, all optional via env vars and failing gracefully. Wired into cron, admin, and token-triggered generation paths; `listSubscribers` added for subscriber delivery. Documented in README. |
 | P5-4 | Add **analytics and usage tracking**                   | Track views, engagement, and operational cost/usage signals. Sources: `PROJECT_RESTORATION_SUMMARY.md`, `DEPLOYMENT_SUCCESS.md`, `DATABASE_TECHNICAL_OVERVIEW.md`. |
 | P5-5 | Add **discovery and content tooling**                  | Full-text search, category/date filters, bookmarking, trending/related articles, and social sharing. Sources: `DATABASE_IMPLEMENTATION.md`, `MSNOW_SUCCESS_FINAL.md`. |
 | P5-6 | Improve **image pipeline and visual polish**           | Unsplash integration, AI image generation, image caching, and category color treatments. Source: `MSNOW_SUCCESS_FINAL.md`.                                    |
@@ -73,7 +73,7 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 | P4-2 | Fix **`PageWrapper` props typing**               | **Completed:** props are now explicitly typed with `ReactNode` and kept in a clean type alias.                 |
 | P4-3 | Add **`LICENSE`**                                | **Completed:** repository includes an MIT license.                                                          |
 | P4-4 | Enable **Dependabot or Renovate**                | **Completed:** dependency update automation is configured for npm and GitHub Actions.                        |
-| P4-5 | Add **smoke E2E**                                | Cover home, one article, newsletter, and one real top-level info page against a running Next server.      |
+| P4-5 | Add **smoke E2E**                                | **Completed:** `tests/smoke.e2e.test.ts` boots a Next server and covers home, one article, the newsletter page, and a real top-level info page; all 4 tests pass in CI and locally. |
 | P4-6 | **CSP** (when adding third-party scripts)        | **Completed:** production headers now enforce a CSP scoped to the app plus the required Vercel analytics endpoints. |
 | P4-7 | Resolve **React 19 peer warnings**               | **Completed:** the active dependency tree has no `react-spring` entry and is compatible with React 19; no remaining peer-warning source is present in the project. |
 

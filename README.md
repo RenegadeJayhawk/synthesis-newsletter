@@ -56,6 +56,16 @@ The production app is a server-backed Next.js deployment. Configure these enviro
 - `POSTGRES_URL`: required for the newsletter and content persistence layer; this project is now configured for Neon Postgres in Vercel.
 - `CRON_SECRET`: required by the scheduled newsletter generation endpoint.
 
+## Notification channels
+
+Newsletter generation (cron, admin, and token-triggered) sends operational alerts through any configured channel. All channels are optional; if none are set, notifications are logged to the console (visible in Vercel logs).
+
+- `RESEND_API_KEY`: enables email alerts via the Resend HTTP API.
+- `NOTIFICATION_EMAIL_FROM`: sender address for email alerts (e.g. `The Synthesis <no-reply@example.com>`).
+- `NOTIFICATION_EMAIL_TO`: recipient address for email alerts.
+- `SLACK_WEBHOOK_URL`: incoming webhook URL for Slack alerts.
+- `WEBHOOK_URL`: generic webhook URL that receives the full notification payload as JSON.
+
 The deployment path used in CI and production is `npm run build` followed by `npm run start` on a running Next.js server. This repository no longer treats `out/` as a release artifact for validation.
 
 ## Deployment model and CI

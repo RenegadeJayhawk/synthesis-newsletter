@@ -550,6 +550,24 @@ export class NewsletterDbService {
   }
 
   /**
+   * List active subscribers (those who have not unsubscribed).
+   * Used for email delivery of generated newsletters.
+   */
+  async listSubscribers(limit: number = 1000): Promise<Subscriber[]> {
+    if (this.isLocalMock) {
+      return this.mockSubscribers
+        .filter((s) => !s.unsubscribedAt)
+        .slice(0, limit);
+    }
+
+    return await db
+      .select()
+      .from(schema.subscribers)
+      .where(sql`${schema.subscribers.unsubscribedAt} IS NULL`)
+      .limit(limit);
+  }
+
+  /**
    * Convert database newsletter to API format
    */
   toApiFormat(newsletter: Newsletter & { articles: Article[] }): ParsedNewsletter & {
