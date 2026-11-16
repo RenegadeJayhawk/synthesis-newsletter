@@ -136,3 +136,59 @@ export function validateSecretValue(providedValue: string, envVarName: string): 
 
   return 'ok';
 }
+
+export function requireApiSecret(
+  request: Request,
+  envVarNames: string | string[]
+): NextResponse | null {
+  const envVars = Array.isArray(envVarNames) ? envVarNames : [envVarNames];
+  const configuredSecrets = envVars
+    .map((name) => process.env[name]?.trim())
+    .filter((val): val is string => Boolean(val));
+
+  if (configuredSecrets.length === 0) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Service unavailable.',
+      },
+      { status: 503 }
+    );
+  }
+
+  let token: string | null = null;
+  const authHeader = request.headers.get('authorization') || '';
+  const bearerPrefix = 'Bearer ';
+
+  if (authHeader.startsWith(bearerPrefix)) {
+    token = authHeader.slice(bearerPrefix.length).trim();
+  } else {
+    const apiKey = request.headers.get('x-api-key');
+    if (apiKey) {
+      token = apiKey.trim();
+    }
+  }
+
+  if (!token) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Unauthorized.',
+      },
+      { status: 401 }
+    );
+  }
+
+  const isValid = configuredSecrets.some((secret) => secureEquals(token!, secret));
+  if (!isValid) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Unauthorized.',
+      },
+      { status: 401 }
+    );
+  }
+
+  return null;
+}

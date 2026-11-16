@@ -62,6 +62,7 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 | P5-5 | Add **discovery and content tooling**                  | Full-text search, category/date filters, bookmarking, trending/related articles, and social sharing. Sources: `DATABASE_IMPLEMENTATION.md`, `MSNOW_SUCCESS_FINAL.md`. |
 | P5-6 | Improve **image pipeline and visual polish**           | Unsplash integration, AI image generation, image caching, and category color treatments. Source: `MSNOW_SUCCESS_FINAL.md`.                                    |
 | P5-7 | Revisit **Neon Postgres migration**                   | **Completed:** Neon project linked via CLI (`.neon` -> project `still-star-77930508`, `production` branch), Drizzle schema pushed and all three tables verified via direct query, pooled `POSTGRES_URL` wired locally and in Vercel, and lint/tsc/build/smoke-E2E gates green. Deploy verification passed: production `/api/health/storage` reports configured/reachable/schemaReady/ready, and `/api/newsletter/list` serves Neon-backed data (empty state, 0 rows). |
+| P5-8 | **External data ingestion and population options**    | Add external data population pipelines and ingestion mechanisms. Baseline **Option 1 (Authenticated Next.js API Route)** implemented via `POST /api/newsletter/import` and alias `POST /api/ingest` with bearer/API-key auth (`NEWSLETTER_INGEST_TOKEN`), rate limiting, structured JSON articles, raw markdown ingestion, image fallback enrichment, and notification webhooks. Future options: **Option 2 (Restricted Neon Postgres Role)** for direct bulk sync/ETL pipelines (Airbyte/Fivetran/Python) using low-privilege DB roles; **Option 3 (Neon Data API)** for serverless HTTP/REST access from edge runtimes without TCP connection pools; and **Async Webhook Queues** (QStash/SQS) with granular single-article append APIs. |
 
 ---
 
@@ -81,11 +82,11 @@ Ordered by impact on **ship readiness and trust** first, then **product complete
 
 ## Suggested next sprint
 
-1. P1-1 through P1-4  
-2. P2-2  
-3. P2-4  
-4. P3-1 through P3-3  
-5. P5-7  
+1. P2-5 (Google Analytics)
+2. P5-4 (Analytics & usage tracking)
+3. P5-5 (Discovery & content tooling)
+4. P5-6 (Image pipeline & visual polish)
+5. P5-8 (Advanced external ingestion options: direct DB ETL / Neon Data API / queues)  
 
 ---
 
