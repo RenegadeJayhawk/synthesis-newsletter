@@ -43,6 +43,7 @@ npx next start -p 3000
 Newsletter generation endpoints are protected. Configure these environment variables before using admin generation flows:
 
 - `NEWSLETTER_ADMIN_TOKEN`: bearer token for privileged API calls to `/api/newsletter/generate`.
+- `NEWSLETTER_INGEST_TOKEN`: bearer token or API key for external service ingestion via `/api/newsletter/import` or `/api/ingest`.
 - `NEWSLETTER_ADMIN_UI_PASSWORD`: password required by `/api/newsletter/admin-generate` and the Admin Tools panel in `/newsletter`.
 - `CRON_SECRET`: authorization secret for `/api/cron/generate-newsletter`.
 
@@ -55,6 +56,56 @@ The production app is a server-backed Next.js deployment. Configure these enviro
 - `GEMINI_API_KEY`: required for newsletter generation and admin generation flows.
 - `POSTGRES_URL`: required for the newsletter and content persistence layer; this project is now configured for Neon Postgres in Vercel.
 - `CRON_SECRET`: required by the scheduled newsletter generation endpoint.
+
+## External ingestion API
+
+External services, scripts, and content pipelines can populate the database via `POST /api/newsletter/import` (or alias `POST /api/ingest`).
+
+### Authentication
+Include either a Bearer token or `x-api-key` header:
+- `NEWSLETTER_INGEST_TOKEN`: dedicated token for external service ingestion (recommended).
+- `NEWSLETTER_ADMIN_TOKEN`: accepted as fallback secret.
+
+```http
+Authorization: Bearer <NEWSLETTER_INGEST_TOKEN>
+# or
+x-api-key: <NEWSLETTER_INGEST_TOKEN>
+```
+
+### Ingestion formats
+
+1. **Structured JSON with articles:**
+```json
+{
+  "weekStart": "November 7, 2026",
+  "weekEnd": "November 14, 2026",
+  "overview": "Summary of breakthroughs this week...",
+  "model": "external-crawler",
+  "articles": [
+    {
+      "title": "Breakthrough in Multimodal Reasoning",
+      "summary": "Key summary points...",
+      "content": "Full article content...",
+      "category": "Major Breakthroughs & Research",
+      "author": "Research Team",
+      "publication": "Tech Daily",
+      "imageUrl": "https://example.com/image.jpg",
+      "sourceUrl": "https://example.com/article"
+    }
+  ]
+}
+```
+
+2. **Raw markdown content:**
+```json
+{
+  "weekStart": "November 7, 2026",
+  "weekEnd": "November 14, 2026",
+  "content": "# AI & GenAI Weekly\n\n## 1. Overview\n...\n\n## 2. Article Title\n..."
+}
+```
+
+Missing thumbnail images are automatically populated using Unsplash or site fallbacks. Successful ingestion triggers operational and subscriber notifications unless disabled with `"notify": false`.
 
 ## Notification channels
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { applyRateLimit, createRequestId, validateSecretValue, requireBearerToken } from './apiSecurity';
+import { applyRateLimit, createRequestId, validateSecretValue, requireBearerToken, requireApiSecret } from './apiSecurity';
 
 describe('apiSecurity utilities', () => {
   describe('createRequestId', () => {
@@ -94,6 +94,64 @@ describe('apiSecurity utilities', () => {
         headers: { authorization: 'Bearer admin-token-123' },
       });
       const response = requireBearerToken(request, envVar);
+      expect(response).toBeNull();
+    });
+  });
+
+  describe('requireApiSecret', () => {
+    beforeEach(() => {
+      vi.stubEnv('NEWSLETTER_INGEST_TOKEN', 'ingest-secret-123');
+      vi.stubEnv('NEWSLETTER_ADMIN_TOKEN', 'admin-backup-456');
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('returns 503 if none of the specified env vars are set', () => {
+      vi.unstubAllEnvs();
+      const request = new Request('http://localhost/api/test', {
+        headers: { authorization: 'Bearer ingest-secret-123' },
+      });
+      const response = requireApiSecret(request, ['NEWSLETTER_INGEST_TOKEN', 'NEWSLETTER_ADMIN_TOKEN']);
+      expect(response?.status).toBe(503);
+    });
+
+    it('returns 401 if no auth header or x-api-key is present', () => {
+      const request = new Request('http://localhost/api/test');
+      const response = requireApiSecret(request, ['NEWSLETTER_INGEST_TOKEN']);
+      expect(response?.status).toBe(401);
+    });
+
+    it('returns 401 if bearer token does not match', () => {
+      const request = new Request('http://localhost/api/test', {
+        headers: { authorization: 'Bearer wrong-secret' },
+      });
+      const response = requireApiSecret(request, ['NEWSLETTER_INGEST_TOKEN']);
+      expect(response?.status).toBe(401);
+    });
+
+    it('authorizes when valid bearer token matches primary secret', () => {
+      const request = new Request('http://localhost/api/test', {
+        headers: { authorization: 'Bearer ingest-secret-123' },
+      });
+      const response = requireApiSecret(request, ['NEWSLETTER_INGEST_TOKEN', 'NEWSLETTER_ADMIN_TOKEN']);
+      expect(response).toBeNull();
+    });
+
+    it('authorizes when valid bearer token matches fallback secret', () => {
+      const request = new Request('http://localhost/api/test', {
+        headers: { authorization: 'Bearer admin-backup-456' },
+      });
+      const response = requireApiSecret(request, ['NEWSLETTER_INGEST_TOKEN', 'NEWSLETTER_ADMIN_TOKEN']);
+      expect(response).toBeNull();
+    });
+
+    it('authorizes with x-api-key header', () => {
+      const request = new Request('http://localhost/api/test', {
+        headers: { 'x-api-key': 'ingest-secret-123' },
+      });
+      const response = requireApiSecret(request, 'NEWSLETTER_INGEST_TOKEN');
       expect(response).toBeNull();
     });
   });
